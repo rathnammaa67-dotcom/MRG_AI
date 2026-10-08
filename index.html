@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MRG AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fffaf0, #fff2d8);
+            color: #222;
+        }
+
+        header {
+            height: 85px;
+            background: white;
+            border-bottom: 3px solid #ff9900;
+            display: flex;
+            align-items: center;
+            padding: 10px 35px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .logo {
+            height: 62px;
+            width: auto;
+        }
+
+        .main {
+            max-width: 950px;
+            margin: auto;
+            padding: 55px 20px;
+        }
+
+        .welcome {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .robot {
+            font-size: 55px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .welcome h1 {
+            margin-top: 10px;
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #c00068, #ff9900);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome p {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .chat-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 45px rgba(180, 90, 0, 0.15);
+            border: 1px solid #ffe1b3;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+        }
+
+        input {
+            flex: 1;
+            height: 58px;
+            padding: 0 20px;
+            border: 2px solid #eadede;
+            border-radius: 16px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #c00068;
+            box-shadow: 0 0 0 4px rgba(192, 0, 104, 0.08);
+        }
+
+        button {
+            height: 58px;
+            padding: 0 25px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #c00068, #ff9900);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 170px;
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .thinking {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            text-align: center;
+            color: #c00068;
+            background: #fff7e8;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .answer {
+            display: none;
+            margin-top: 28px;
+        }
+
+        .question-box {
+            background: #fff5df;
+            border-left: 5px solid #ff9900;
+            padding: 16px 18px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+        }
+
+        .question-label {
+            font-size: 13px;
+            color: #a66a00;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .question-text {
+            font-size: 16px;
+        }
+
+        .answer-box {
+            background: white;
+            border: 1px solid #eee;
+            border-left: 5px solid #c00068;
+            padding: 22px;
+            border-radius: 12px;
+            line-height: 1.7;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .answer-title {
+            color: #c00068;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .answer-text {
+            white-space: pre-wrap;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 35px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .creator {
+            color: #c00068;
+            font-weight: bold;
+        }
+
+        @media (max-width: 650px) {
+
+            header {
+                justify-content: center;
+            }
+
+            .main {
+                padding: 35px 15px;
+            }
+
+            .welcome h1 {
+                font-size: 32px;
+            }
+
+            .chat-card {
+                padding: 18px;
+            }
+
+            .input-area {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+
+        <img
+            src="{{ url_for('static', filename='mrg-ai-logo.png') }}"
+            alt="MRG AI Logo"
+            class="logo"
+        >
+
+    </header>
+
+
+    <main class="main">
+
+        <section class="welcome">
+
+            <div class="robot">🤖</div>
+
+            <h1>Welcome to MRG AI</h1>
+
+            <p>
+                Ask anything. Learn anything. Discover anything.
+            </p>
+
+        </section>
+
+
+        <div class="chat-card">
+
+            <form id="questionForm">
+
+                <div class="input-area">
+
+                    <input
+                        type="text"
+                        id="question"
+                        placeholder="Ask MRG AI anything..."
+                        autocomplete="off"
+                        autofocus
+                        required
+                    >
+
+                    <button type="submit" id="askButton">
+                        ✨ Ask MRG AI
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <div class="thinking" id="thinking">
+                🤖 MRG AI is thinking...
+            </div>
+
+
+            <div class="answer" id="answer">
+
+                <div class="question-box">
+
+                    <div class="question-label">
+                        YOUR QUESTION
+                    </div>
+
+                    <div class="question-text" id="questionText">
+                    </div>
+
+                </div>
+
+
+                <div class="answer-box">
+
+                    <div class="answer-title">
+                        🤖 MRG AI
+                    </div>
+
+                    <div class="answer-text" id="answerText">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <footer>
+
+            Powered by MRG AI • Created by
+            <span class="creator">Manju R Gowda</span>
+
+        </footer>
+
+    </main>
+
+
+    <script>
+
+        const form = document.getElementById("questionForm");
+        const questionInput = document.getElementById("question");
+        const askButton = document.getElementById("askButton");
+        const thinking = document.getElementById("thinking");
+
+        const answer = document.getElementById("answer");
+        const questionText = document.getElementById("questionText");
+        const answerText = document.getElementById("answerText");
+
+
+        form.addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const question = questionInput.value.trim();
+
+            if (!question) {
+                return;
+            }
+
+
+            // Show loading state
+
+            askButton.disabled = true;
+            askButton.innerHTML = "🤖 Thinking...";
+
+            thinking.style.display = "block";
+
+            answer.style.display = "block";
+
+            questionText.textContent = question;
+
+            answerText.textContent = "";
+
+
+            // Clear the question bar
+
+            questionInput.value = "";
+
+
+            try {
+
+                const response = await fetch("/ask", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+
+                    body: "question=" + encodeURIComponent(question)
+
+                });
+
+
+                if (!response.ok) {
+                    throw new Error("Server error");
+                }
+
+
+                // Answer has started arriving
+
+                thinking.style.display = "none";
+
+
+                const reader = response.body.getReader();
+
+                const decoder = new TextDecoder();
+
+
+                while (true) {
+
+                    const { value, done } = await reader.read();
+
+                    if (done) {
+                        break;
+                    }
+
+
+                    const text = decoder.decode(value, {
+                        stream: true
+                    });
+
+
+                    answerText.textContent += text;
+
+
+                    // Automatically scroll to the answer
+
+                    answer.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest"
+                    });
+
+                }
+
+
+            } catch (error) {
+
+                thinking.style.display = "none";
+
+                answerText.textContent =
+                    "⚠️ Manju's server is currently busy. Please try again.";
+
+            }
+
+
+            askButton.disabled = false;
+
+            askButton.innerHTML = "✨ Ask MRG AI";
+
+            questionInput.focus();
+
+        });
+
+    </script>
+
+</body>
+
+</html>
