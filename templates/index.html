@@ -3,681 +3,729 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MRG AI — Your Smart Assistant</title>
-
+<title>MRG AI — Your Friendly AI Assistant</title>
 <style>
 :root {
-    --blue: #268cff;
-    --purple: #8747ff;
-    --pink: #ed4fa5;
-    --green: #12c9a0;
-    --dark: #102b68;
+    --blue: #6478ff;
+    --purple: #9564ed;
+    --pink: #ff8fbd;
+    --ink: #25284b;
+    --muted: #777b98;
+    --panel: rgba(255,255,255,.91);
 }
-
 * { box-sizing: border-box; }
-
+html { scroll-behavior: smooth; }
 body {
     margin: 0;
-    min-height: 100vh;
-    font-family: "Segoe UI", Arial, sans-serif;
-    color: var(--dark);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
     background:
-        radial-gradient(ellipse at 8% 25%, #b8e8ff 0, transparent 35%),
-        radial-gradient(ellipse at 90% 55%, #e5d5ff 0, transparent 35%),
-        linear-gradient(135deg, #f5fbff, #edf4ff 55%, #fff5fb);
+        radial-gradient(ellipse at 8% 8%, #ffe2f1 0, transparent 32%),
+        radial-gradient(ellipse at 92% 20%, #d9e8ff 0, transparent 35%),
+        linear-gradient(135deg, #f9f6ff, #f0f5ff 55%, #fff1f8);
+    min-height: 100vh;
 }
-
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible {
+    outline: 3px solid #a8b4ff;
+    outline-offset: 3px;
+}
 header {
-    min-height: 86px;
-    padding: 14px 3%;
+    position: sticky;
+    top: 0;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 18px;
-    flex-wrap: wrap;
-    background: #ffffffdf;
-    border-bottom: 1px solid #d8e8ff;
-    border-radius: 0 0 24px 24px;
-    box-shadow: 0 5px 25px #4a7cc410;
+    gap: 16px;
+    padding: 14px clamp(14px, 4vw, 55px);
+    background: rgba(255,255,255,.86);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid #ffffff;
 }
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 13px;
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon {
+    width: 44px; height: 44px;
+    border-radius: 15px;
+    display: grid; place-items: center;
+    font-size: 26px;
+    background: linear-gradient(135deg, #b7c8ff, #f4b9e7);
+    box-shadow: 0 5px 16px #a8b6ef55;
 }
-
-.robot-logo {
-    width: 55px;
-    height: 55px;
-    display: grid;
-    place-items: center;
-    font-size: 43px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #c5f2ff, #dcd0ff);
+.brand-name { font-size: 22px; font-weight: 850; letter-spacing: -.7px; }
+.brand-tag { color: var(--muted); font-size: 11px; margin-top: 3px; }
+nav { display: flex; align-items: center; gap: 6px; }
+nav button {
+    border: 0; background: transparent;
+    color: #555b7e; padding: 10px 13px;
+    border-radius: 12px; font-weight: 650;
 }
-
-.brand h2 {
-    margin: 0;
-    font-size: 34px;
-    font-weight: 850;
-    letter-spacing: -1px;
-    background: linear-gradient(90deg, #268cff, #8a40f7);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+nav button:hover, nav button.active { background: #eeefff; color: #5b54d9; }
+.new-chat {
+    border: 0; border-radius: 13px; padding: 11px 15px;
+    color: white; font-weight: 750;
+    background: linear-gradient(120deg, var(--blue), var(--purple));
+    box-shadow: 0 6px 18px #8170ec44;
 }
-
-.brand span {
-    display: block;
-    margin-top: 3px;
-    font-size: 13px;
-    color: #506a9c;
-}
-
-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-nav a {
-    text-decoration: none;
-    color: #234477;
-    font-weight: 650;
-    padding: 10px 5px;
-}
-
-nav a:hover { color: var(--blue); }
-
+main { max-width: 1190px; margin: auto; padding: 28px 22px 55px; }
 .hero {
-    max-width: 1450px;
-    margin: 35px auto 20px;
-    padding: 15px 4%;
-    display: grid;
-    grid-template-columns: minmax(180px, .75fr) minmax(0, 2fr);
-    align-items: center;
-    gap: 24px;
+    display: grid; grid-template-columns: .82fr 1.18fr;
+    align-items: center; gap: 35px; padding: 20px 0 32px;
 }
-
-.robot-area {
-    text-align: center;
+.robot-side { text-align: center; position: relative; }
+.robot {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 210px; height: 210px; border-radius: 42% 42% 38% 38%;
+    font-size: 105px;
+    background: linear-gradient(145deg, #e0e7ff, #fbdff1);
+    box-shadow: inset 0 -10px 24px #b5b8f044, 0 22px 55px #827ee933;
+    animation: float 3.5s ease-in-out infinite;
     position: relative;
 }
-
-.robot {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 190px;
-    height: 210px;
-    font-size: 140px;
-    filter: drop-shadow(0 18px 20px #598aff45);
-    animation: float 3s ease-in-out infinite;
+.robot:before {
+    content: "♥"; position: absolute; top: 14px; right: 22px;
+    font-size: 23px; color: #ff7eae;
 }
-
-.hello {
-    display: inline-block;
-    padding: 12px 18px;
-    border-radius: 18px 18px 18px 4px;
-    background: linear-gradient(135deg, #42c9ff, #397cff);
-    color: white;
-    font-weight: 750;
-    box-shadow: 0 7px 20px #438aff35;
+.robot:after {
+    content: "✦"; position: absolute; top: 20px; left: 19px;
+    font-size: 26px; color: #8d7cff;
 }
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-9px); }
+@keyframes float { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-10px) rotate(1deg); } }
+.speech {
+    display: inline-block; background: white; border-radius: 20px;
+    padding: 12px 19px; margin-top: 18px;
+    box-shadow: 0 9px 28px #6572b51a; font-weight: 750;
 }
-
-.welcome {
-    text-align: center;
+.speech span { color: #8b6bea; }
+.eyebrow {
+    display: inline-block; background: #ffffffb8; color: #6558d8;
+    border: 1px solid #e3dfff; border-radius: 30px;
+    padding: 8px 13px; font-size: 12px; font-weight: 800;
+    letter-spacing: .8px;
 }
-
-.welcome .small-title {
-    font-size: clamp(23px, 3vw, 36px);
-    font-weight: 800;
-    margin: 0;
+h1 { font-size: clamp(34px, 4.5vw, 56px); line-height: 1.1; margin: 17px 0; letter-spacing: -1.8px; }
+.gradient-text {
+    background: linear-gradient(100deg, #6279f5, #a35be0, #ed79b2);
+    color: transparent; background-clip: text;
 }
-
-.welcome h1 {
-    margin: 5px 0;
-    font-size: clamp(48px, 7vw, 88px);
-    font-weight: 900;
-    letter-spacing: -3px;
-    background: linear-gradient(100deg, #2c9dff, #7355ff, #ce54e8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-.welcome p {
-    margin: 8px 0;
-    font-size: clamp(16px, 2vw, 24px);
-    color: #3464a5;
-}
-
+.subtitle { color: var(--muted); line-height: 1.8; font-size: 16px; max-width: 520px; }
 .chat-panel {
-    width: min(1050px, 92%);
-    margin: 10px auto 35px;
-    padding: clamp(20px, 3vw, 38px);
-    border: 1px solid #ffffff;
-    border-radius: 34px;
-    background: #ffffffd9;
-    box-shadow: 0 22px 60px #6392d426;
-    backdrop-filter: blur(16px);
+    background: var(--panel); border: 1px solid #ffffff;
+    border-radius: 25px; padding: 23px;
+    box-shadow: 0 18px 65px #626ab71a;
 }
-
-#chatForm {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.chat-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.chat-heading h2 { margin: 0; font-size: 19px; }
+.online { color: #248e69; font-size: 12px; font-weight: 750; }
+.online:before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; background:#42c99b; margin-right:6px; }
+.messages {
+    display: flex; flex-direction: column; gap: 14px;
+    max-height: 480px; min-height: 135px; overflow-y: auto;
+    padding: 20px 2px; scroll-behavior: smooth;
 }
-
-#question {
-    flex: 1;
-    min-width: 0;
-    height: 70px;
-    padding: 0 23px;
-    border: 2px solid #d2e5ff;
-    border-radius: 25px;
-    outline: none;
-    background: #ffffffeb;
-    font-size: 18px;
-    color: #17366d;
-    transition: border-color .2s, box-shadow .2s;
+.message { display:flex; gap:10px; align-items:flex-start; }
+.message.user { flex-direction: row-reverse; }
+.avatar {
+    flex: 0 0 34px; width:34px; height:34px;
+    display:grid; place-items:center; border-radius:12px;
+    background:#e8eaff; font-size:19px;
 }
-
-#question:focus {
-    border-color: #559cff;
-    box-shadow: 0 0 0 5px #559cff18;
-}
-
-#chatForm button {
-    width: 65px;
-    height: 65px;
-    flex-shrink: 0;
-    border: none;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #4acbff, #3478ff);
-    color: white;
-    font-size: 27px;
-    cursor: pointer;
-}
-
-.controls {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 15px;
-    margin-top: 24px;
-}
-
-.control {
-    min-height: 68px;
-    padding: 13px 15px;
-    border: 1px solid transparent;
-    border-radius: 25px;
-    font-size: clamp(14px, 1.5vw, 18px);
-    font-weight: 750;
-    cursor: pointer;
-    transition: transform .2s, box-shadow .2s;
-}
-
-.control:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px #4778ba22;
-}
-
-#micButton {
-    color: white;
-    background: linear-gradient(120deg, #a25bff, #7140f1);
-    box-shadow: 0 9px 20px #8b51f333;
-}
-
-#voiceButton {
-    color: #16468e;
-    background: linear-gradient(120deg, #d8f1ff, #cceaff);
-    border-color: #b8e0ff;
-}
-
-#voiceButton.active {
-    background: linear-gradient(120deg, #a5f6e6, #66dfc5);
-    color: #075a4a;
-}
-
-#askButton {
-    color: white;
-    background: linear-gradient(120deg, #20d8ad, #08b88e);
-    box-shadow: 0 9px 20px #16c69b33;
-}
-
-#stopButton {
-    display: none;
-    color: #b32955;
-    background: #fff0f5;
-    border-color: #ffd5e3;
-}
-
-#status {
-    text-align: center;
-    margin-top: 22px;
-    color: #2862a6;
-    font-weight: 600;
-    min-height: 24px;
-}
-
-#status::before {
-    content: "●";
-    color: #20cba9;
-    margin-right: 10px;
-}
-
-.result {
-    margin-top: 22px;
-    padding: 23px;
-    border-radius: 22px;
-    background: #fff;
-    border: 1px solid #e4edff;
-    box-shadow: 0 8px 24px #3f6fb20b;
-    overflow-wrap: anywhere;
-}
-
-.result[hidden] { display: none; }
-
-.question-result {
-    background: linear-gradient(120deg, #fff7e7, #fffaf3);
-    border-color: #ffe4bd;
-}
-
-.result-label {
-    margin-bottom: 10px;
-    font-size: 13px;
-    font-weight: 800;
-    color: #b37b22;
-    letter-spacing: .5px;
-}
-
-.answer-title {
-    margin-bottom: 14px;
-    color: #7746ec;
-    font-size: 20px;
-    font-weight: 850;
-}
-
-#answer {
+.message.user .avatar { background:#fce3f0; }
+.bubble {
+    max-width: 88%; padding: 12px 15px; border-radius: 5px 17px 17px 17px;
+    background: #f0f2ff; line-height: 1.65; overflow-wrap:anywhere;
     white-space: pre-wrap;
-    line-height: 1.8;
-    font-size: 17px;
-    color: #273c60;
 }
-
-.features {
-    max-width: 1250px;
-    width: 92%;
-    margin: 35px auto 45px;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 14px;
+.message.user .bubble {
+    background: linear-gradient(120deg, #737ff4, #9b73e9);
+    color: white; border-radius: 17px 5px 17px 17px;
 }
-
+.composer {
+    display:flex; align-items:center; gap:9px; padding:8px;
+    border:1px solid #e4e4f6; background:white; border-radius:18px;
+}
+.composer input { flex:1; min-width:0; border:0; outline:0; padding:10px 7px; color:var(--ink); background:transparent; }
+.icon-button {
+    border:0; background:#f0f1ff; color:#5d60d8;
+    width:42px; height:42px; border-radius:13px; font-size:19px;
+}
+.send-button {
+    border:0; background:linear-gradient(120deg,var(--blue),var(--purple));
+    color:white; border-radius:13px; width:46px; height:44px; font-size:22px;
+}
+.controls { display:flex; flex-wrap:wrap; gap:9px; margin-top:13px; }
+.control {
+    border:1px solid #e5e4f7; background:white; color:#5a5e82;
+    border-radius:12px; padding:10px 12px; font-size:12px; font-weight:700;
+}
+.control.on { background:#eeedff; color:#6253d7; border-color:#d8d1ff; }
+.status { font-size:12px; color:var(--muted); min-height:20px; margin-top:12px; }
+.section-title { text-align:center; margin: 45px 0 20px; }
+.section-title h2 { font-size:29px; margin:0 0 9px; }
+.section-title p { color:var(--muted); margin:0; }
+.features { display:grid; grid-template-columns:repeat(4,1fr); gap:15px; }
 .feature {
-    min-height: 165px;
-    padding: 22px 13px;
-    text-align: center;
-    border-radius: 28px;
-    background: #ffffffb9;
-    border: 1px solid #ffffff;
-    box-shadow: 0 10px 25px #537db20b;
+    background:#ffffffbd; border:1px solid white; border-radius:20px;
+    padding:21px 17px; box-shadow:0 10px 35px #737ab30b;
 }
-
-.feature-icon {
-    width: 62px;
-    height: 62px;
-    margin: 0 auto 12px;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    color: white;
-    font-size: 28px;
-    background: linear-gradient(135deg, #b275ff, #7745ed);
+.feature-icon { font-size:28px; }
+.feature h3 { margin:12px 0 7px; font-size:15px; }
+.feature p { margin:0; font-size:13px; color:var(--muted); line-height:1.65; }
+footer { text-align:center; padding:22px; color:var(--muted); font-size:13px; }
+footer strong { color:#7263dc; }
+.modal-backdrop {
+    display:none; position:fixed; inset:0; z-index:50;
+    background:#20234266; padding:18px;
+    align-items:center; justify-content:center;
 }
-
-.feature:nth-child(2) .feature-icon {
-    background: linear-gradient(135deg, #ffd969, #ff9e1c);
+.modal-backdrop.show { display:flex; }
+.modal {
+    width:min(470px,100%); background:white; border-radius:24px;
+    padding:24px; box-shadow:0 25px 90px #17194344;
+    max-height:85vh; overflow:auto;
 }
-
-.feature:nth-child(3) .feature-icon {
-    background: linear-gradient(135deg, #4ce2bc, #06b98f);
+.modal-top { display:flex; align-items:center; justify-content:space-between; }
+.modal h2 { margin:0; }
+.close-button { border:0; background:#f1f0fc; border-radius:11px; padding:8px 12px; }
+.history-list { display:grid; gap:9px; margin-top:17px; }
+.history-item {
+    display:flex; gap:8px; align-items:center; text-align:left;
+    width:100%; border:1px solid #ecebfa; border-radius:13px;
+    padding:12px; background:#fafaff; color:var(--ink);
 }
-
-.feature:nth-child(4) .feature-icon {
-    background: linear-gradient(135deg, #ff86b5, #f04485);
+.history-item span { overflow-wrap:anywhere; flex:1; }
+.history-item small { color:var(--muted); }
+.setting-row { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:15px 0; border-bottom:1px solid #eeeefa; }
+.setting-row p { margin:5px 0 0; font-size:12px; color:var(--muted); }
+.setting-row input { width:19px; height:19px; accent-color:#7869ed; }
+@media(max-width:800px) {
+    header { flex-wrap:wrap; }
+    nav { order:3; width:100%; overflow-x:auto; }
+    nav button { flex:1; white-space:nowrap; padding:9px; }
+    .hero { grid-template-columns:1fr; gap:25px; text-align:center; }
+    .robot { width:155px; height:155px; font-size:78px; border-radius:40px; }
+    .subtitle { margin-left:auto; margin-right:auto; }
+    .features { grid-template-columns:repeat(2,1fr); }
+    .chat-panel { padding:16px; }
 }
-
-.feature:nth-child(5) .feature-icon {
-    background: linear-gradient(135deg, #7dbbff, #466eff);
-}
-
-.feature h3 {
-    margin: 8px 0;
-    font-size: 16px;
-}
-
-.feature p {
-    margin: 8px 0 0;
-    color: #55709b;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-footer {
-    padding: 25px 12px;
-    text-align: center;
-    color: white;
-    font-weight: 650;
-    background: linear-gradient(100deg, #62caff, #6487ff, #a77bff);
-    border-radius: 50% 50% 0 0 / 28px 28px 0 0;
-}
-
-footer span { margin: 0 7px; }
-
-@media (max-width: 850px) {
-    header { justify-content: center; }
-    nav { justify-content: center; gap: 14px; }
-    .hero { grid-template-columns: 1fr; margin-top: 20px; }
-    .robot-area { display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .robot { width: 110px; height: 115px; font-size: 90px; }
-    .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 520px) {
-    .brand h2 { font-size: 29px; }
-    .robot { width: 75px; height: 85px; font-size: 65px; }
-    .chat-panel { border-radius: 24px; padding: 18px; }
-    #chatForm { gap: 8px; }
-    #question { height: 60px; padding: 0 14px; font-size: 16px; border-radius: 19px; }
-    #chatForm button { width: 54px; height: 54px; }
-    .controls { grid-template-columns: 1fr; gap: 10px; }
-    .control { min-height: 58px; }
-    .features { gap: 10px; }
-    .feature { padding: 17px 9px; min-height: 150px; }
-    .feature h3 { font-size: 14px; }
+@media(max-width:430px) {
+    .brand-name { font-size:19px; }
+    .new-chat { padding:10px; font-size:12px; }
+    main { padding:18px 12px 35px; }
+    .features { gap:9px; }
+    .feature { padding:15px 12px; }
+    .composer { gap:5px; }
+    .icon-button { width:37px; height:39px; }
 }
 </style>
 </head>
-
 <body>
 
 <header>
     <div class="brand">
-        <div class="robot-logo">🤖</div>
+        <div class="brand-icon">🤖</div>
         <div>
-            <h2>MRG AI</h2>
-            <span>Your Smart Assistant ✨</span>
+            <div class="brand-name">MRG <span class="gradient-text">AI</span></div>
+            <div class="brand-tag">Your friendly AI companion</div>
         </div>
     </div>
-
-    <nav>
-        <a href="#home">⌂ Home</a>
-        <a href="#about">ⓘ About</a>
-        <a href="#features">♧ Features</a>
+    <nav aria-label="Main navigation">
+        <button class="active" data-action="home">⌂ Home</button>
+        <button data-action="about">ⓘ About</button>
+        <button data-action="features">✦ Features</button>
+        <button data-action="history">▤ Chat history</button>
+        <button data-action="settings">⚙ Settings</button>
     </nav>
+    <button class="new-chat" id="newChat">＋ New chat</button>
 </header>
 
-<section class="hero" id="home">
-    <div class="robot-area">
-        <div class="robot" aria-label="Friendly robot">🤖</div>
-        <div class="hello">Hello! 👋</div>
-    </div>
-
-    <div class="welcome">
-        <p class="small-title">Welcome to</p>
-        <h1>MRG AI</h1>
-        <p>Ask anything... I'm here to help! ✨</p>
-    </div>
-</section>
-
-<main class="chat-panel" id="about">
-    <form id="chatForm">
-        <input
-            id="question"
-            name="question"
-            type="text"
-            placeholder="Type your question here..."
-            autocomplete="off"
-            required
-            aria-label="Your question"
-        >
-        <button type="submit" aria-label="Send question" title="Send question">➤</button>
-    </form>
-
-    <div class="controls">
-        <button class="control" id="micButton" type="button">
-            🎙 Speak a question
-        </button>
-
-        <button class="control" id="voiceButton" type="button">
-            🔊 Voice replies: OFF
-        </button>
-
-        <button class="control" id="askButton" type="submit" form="chatForm">
-            ✨ Ask MRG AI
-        </button>
-
-        <button class="control" id="stopButton" type="button">
-            ⏹ Stop speaking
-        </button>
-    </div>
-
-    <div id="status" role="status" aria-live="polite">Ready to help you! 😊</div>
-
-    <section class="result question-result" id="questionCard" hidden>
-        <div class="result-label">YOUR QUESTION</div>
-        <div id="questionText"></div>
+<main id="home">
+    <section class="hero" id="about">
+        <div class="robot-side">
+            <div class="robot" aria-label="Cute smiling robot">🤖</div>
+            <div class="speech">Hello, friend! <span>♥</span></div>
+        </div>
+        <div>
+            <div class="eyebrow">✦ YOUR AI, YOUR WAY</div>
+            <h1>Meet your new<br><span class="gradient-text">best AI friend.</span></h1>
+            <p class="subtitle">Ask anything, explore ideas, learn something new, or just have a conversation. I'm here to help!</p>
+            <p style="font-size:13px;color:#797d9b">Friendly conversations, one question at a time. 💜</p>
+        </div>
     </section>
 
-    <section class="result" id="answerCard" hidden>
-        <div class="answer-title">🤖 MRG AI</div>
-        <div id="answer" aria-live="polite"></div>
+    <section class="chat-panel" id="chat">
+        <div class="chat-heading">
+            <h2>💬 Chat with MRG AI</h2>
+            <span class="online" id="onlineStatus">Ready to help</span>
+        </div>
+        <div class="messages" id="messages" aria-live="polite"></div>
+
+        <form id="chatForm">
+            <div class="composer">
+                <input id="question" name="question" type="text"
+                       placeholder="Ask me anything..." autocomplete="off"
+                       aria-label="Your question" required>
+                <button type="button" class="icon-button" id="micButton" title="Speak a question" aria-label="Speak a question">🎤</button>
+                <button type="submit" class="send-button" id="sendButton" title="Send question" aria-label="Send question">➤</button>
+            </div>
+        </form>
+
+        <div class="controls">
+            <button class="control" id="voiceButton" aria-pressed="false">🔊 Voice replies: Off</button>
+            <button class="control" id="stopButton">⏹ Stop voice</button>
+            <button class="control" id="historyButton">📚 Chat history</button>
+            <button class="control" id="clearButton">🗑 Clear this chat</button>
+        </div>
+        <div class="status" id="status" role="status">Your friendly AI assistant is ready.</div>
+    </section>
+
+    <section id="features">
+        <div class="section-title">
+            <h2>Everything you need, <span class="gradient-text">in one place.</span></h2>
+            <p>A helpful little assistant with big ideas.</p>
+        </div>
+        <div class="features">
+            <article class="feature"><div class="feature-icon">💡</div><h3>Smart answers</h3><p>Explore questions, ideas, and new topics.</p></article>
+            <article class="feature"><div class="feature-icon">💬</div><h3>Natural chat</h3><p>Ask follow-up questions and continue the conversation.</p></article>
+            <article class="feature"><div class="feature-icon">🎤</div><h3>Voice input</h3><p>Speak your question when microphone support is available.</p></article>
+            <article class="feature"><div class="feature-icon">📚</div><h3>Saved history</h3><p>Return to previous chats in this browser.</p></article>
+        </div>
     </section>
 </main>
 
-<section class="features" id="features">
-    <article class="feature">
-        <div class="feature-icon">🧠</div>
-        <h3>Get Answers</h3>
-        <p>Learn, explore, discover.</p>
-    </article>
-
-    <article class="feature">
-        <div class="feature-icon">💡</div>
-        <h3>Be More Productive</h3>
-        <p>Save time, work smarter.</p>
-    </article>
-
-    <article class="feature">
-        <div class="feature-icon">🛡</div>
-        <h3>Stay Informed</h3>
-        <p>Find helpful information.</p>
-    </article>
-
-    <article class="feature">
-        <div class="feature-icon">♥</div>
-        <h3>Always Here</h3>
-        <p>Your AI companion.</p>
-    </article>
-
-    <article class="feature">
-        <div class="feature-icon">✨</div>
-        <h3>Powered by Innovation</h3>
-        <p>Built with care for you.</p>
-    </article>
-</section>
-
-<footer>
-    MRG AI <span>♥</span> Smarter Together
-    <br><br>
-    Created by Manju R Gowda
+<footer>Made with <span style="color:#f178b0">♥</span> for curious minds<br><br>
+<strong>MRG AI</strong> · Smarter Together · Created by Manju R Gowda
 </footer>
 
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+        <div class="modal-top">
+            <h2 id="modalTitle">MRG AI</h2>
+            <button class="close-button" id="closeModal">✕ Close</button>
+        </div>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
 <script>
-const form = document.getElementById("chatForm");
-const input = document.getElementById("question");
-const micButton = document.getElementById("micButton");
-const voiceButton = document.getElementById("voiceButton");
-const stopButton = document.getElementById("stopButton");
-const statusBox = document.getElementById("status");
-const questionCard = document.getElementById("questionCard");
-const questionText = document.getElementById("questionText");
-const answerCard = document.getElementById("answerCard");
-const answerBox = document.getElementById("answer");
-const submitButtons = form.querySelectorAll('button[type="submit"], button[form="chatForm"]');
+(() => {
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("question");
+    const messagesEl = document.getElementById("messages");
+    const statusEl = document.getElementById("status");
+    const sendButton = document.getElementById("sendButton");
+    const voiceButton = document.getElementById("voiceButton");
+    const stopButton = document.getElementById("stopButton");
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalContent = document.getElementById("modalContent");
 
-let voiceReplies = false;
-let recognition = null;
+    const STORAGE_KEY = "mrg_ai_chats_v2";
+    const ACTIVE_KEY = "mrg_ai_active_chat_v2";
+    let chats = loadChats();
+    let activeId = localStorage.getItem(ACTIVE_KEY);
+    let voiceEnabled = false;
+    let busy = false;
+    let recognition = null;
 
-function setStatus(message) {
-    statusBox.textContent = message;
-}
-
-function speakAnswer(text) {
-    if (!voiceReplies || !("speechSynthesis" in window)) return;
-
-    window.speechSynthesis.cancel();
-
-    const speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "en-IN";
-    speech.rate = 1;
-
-    window.speechSynthesis.speak(speech);
-}
-
-voiceButton.addEventListener("click", () => {
-    voiceReplies = !voiceReplies;
-
-    voiceButton.textContent = voiceReplies
-        ? "🔊 Voice replies: ON"
-        : "🔊 Voice replies: OFF";
-
-    voiceButton.classList.toggle("active", voiceReplies);
-
-    if (!voiceReplies && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-    }
-
-    setStatus(voiceReplies
-        ? "Voice replies enabled!"
-        : "Voice replies disabled.");
-});
-
-stopButton.addEventListener("click", () => {
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-    setStatus("Stopped speaking.");
-});
-
-const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.lang = "en-IN";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => {
-        micButton.classList.add("active");
-        setStatus("Listening... Speak your question.");
-    };
-
-    recognition.onresult = (event) => {
-        input.value = event.results[0][0].transcript;
-        setStatus("Question captured. Asking MRG AI...");
-        form.requestSubmit();
-    };
-
-    recognition.onerror = (event) => {
-        setStatus("Microphone error: " + event.error +
-            ". Check your browser's microphone permission.");
-    };
-
-    recognition.onend = () => {
-        micButton.classList.remove("active");
-    };
-
-    micButton.addEventListener("click", () => {
+    function loadChats() {
         try {
-            recognition.start();
-        } catch (error) {
-            setStatus("Please wait a moment, then try the microphone again.");
-        }
-    });
-} else {
-    micButton.addEventListener("click", () => {
-        setStatus("Voice input is not supported by this browser. Try Chrome.");
-    });
-}
-
-form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const question = input.value.trim();
-    if (!question) return;
-
-    questionCard.hidden = false;
-    answerCard.hidden = false;
-    questionText.textContent = question;
-    answerBox.textContent = "";
-    submitButtons.forEach(button => button.disabled = true);
-    setStatus("MRG AI is thinking... ✨");
-
-    try {
-        const response = await fetch("/ask", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-            },
-            body: new URLSearchParams({ question })
-        });
-
-        if (!response.ok) {
-            throw new Error("The server returned an error. Please try again.");
-        }
-
-        if (!response.body) {
-            throw new Error("Your browser could not receive the answer.");
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullAnswer = "";
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            fullAnswer += decoder.decode(value, { stream: true });
-            answerBox.textContent = fullAnswer;
-        }
-
-        fullAnswer += decoder.decode();
-        answerBox.textContent = fullAnswer;
-
-        if (fullAnswer.trim()) {
-            setStatus("Answer complete! 😊");
-            speakAnswer(fullAnswer);
-        } else {
-            setStatus("No answer received. Please try again.");
-        }
-    } catch (error) {
-        answerBox.textContent =
-            "Sorry, something went wrong. Please try again.";
-        setStatus(error.message);
-    } finally {
-        submitButtons.forEach(button => button.disabled = false);
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+            return Array.isArray(data) ? data : [];
+        } catch { return []; }
     }
-});
-</script>
 
+    function saveChats() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+            if (activeId) localStorage.setItem(ACTIVE_KEY, activeId);
+        } catch {
+            statusEl.textContent = "Browser storage is full. Consider clearing old chats.";
+        }
+    }
+
+    function makeId() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function getActiveChat() {
+        return chats.find(chat => chat.id === activeId);
+    }
+
+    function createChat() {
+        const chat = { id: makeId(), title: "New chat", messages: [], updated: Date.now() };
+        chats.unshift(chat);
+        activeId = chat.id;
+        saveChats();
+        renderMessages();
+        return chat;
+    }
+
+    function ensureChat() {
+        return getActiveChat() || createChat();
+    }
+
+    function addMessage(role, text) {
+        const chat = ensureChat();
+        chat.messages.push({ role, text });
+        chat.updated = Date.now();
+        if (role === "user" && chat.title === "New chat") {
+            chat.title = text.slice(0, 48) || "New chat";
+        }
+        saveChats();
+        renderMessages();
+    }
+
+    function renderMessages() {
+        messagesEl.replaceChildren();
+        const chat = getActiveChat();
+
+        if (!chat || chat.messages.length === 0) {
+            const welcome = document.createElement("div");
+            welcome.className = "message";
+            const avatar = document.createElement("div");
+            avatar.className = "avatar";
+            avatar.textContent = "🤖";
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.textContent = "Hi there! I'm MRG AI. 😊 What would you like to talk about today?";
+            welcome.append(avatar, bubble);
+            messagesEl.append(welcome);
+            return;
+        }
+
+        for (const item of chat.messages) {
+            const row = document.createElement("div");
+            row.className = "message " + (item.role === "user" ? "user" : "assistant");
+            const avatar = document.createElement("div");
+            avatar.className = "avatar";
+            avatar.textContent = item.role === "user" ? "🙂" : "🤖";
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.textContent = item.text;
+            row.append(avatar, bubble);
+            messagesEl.append(row);
+        }
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function openModal(title, contentBuilder) {
+        modalTitle.textContent = title;
+        modalContent.replaceChildren();
+        contentBuilder(modalContent);
+        modalBackdrop.classList.add("show");
+    }
+
+    function closeModal() {
+        modalBackdrop.classList.remove("show");
+    }
+
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    modalBackdrop.addEventListener("click", event => {
+        if (event.target === modalBackdrop) closeModal();
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") closeModal();
+    });
+
+    function openHistory() {
+        openModal("📚 Your chat history", container => {
+            const note = document.createElement("p");
+            note.style.color = "#777b98";
+            note.textContent = "Your chats are saved in this browser on this device.";
+            container.append(note);
+
+            const list = document.createElement("div");
+            list.className = "history-list";
+
+            if (!chats.length) {
+                const empty = document.createElement("p");
+                empty.textContent = "No saved conversations yet. Start chatting to build your history!";
+                list.append(empty);
+            }
+
+            for (const chat of chats) {
+                const row = document.createElement("div");
+                row.className = "history-item";
+
+                const open = document.createElement("button");
+                open.className = "history-item";
+                open.style.flex = "1";
+                open.innerHTML = "";
+                const title = document.createElement("span");
+                title.textContent = "💬 " + chat.title;
+                const details = document.createElement("small");
+                details.textContent = chat.messages.length + " messages";
+                open.append(title, details);
+                open.addEventListener("click", () => {
+                    activeId = chat.id;
+                    saveChats();
+                    renderMessages();
+                    closeModal();
+                    document.getElementById("chat").scrollIntoView({behavior:"smooth"});
+                });
+
+                const remove = document.createElement("button");
+                remove.className = "close-button";
+                remove.textContent = "🗑";
+                remove.title = "Delete this conversation";
+                remove.setAttribute("aria-label", "Delete " + chat.title);
+                remove.addEventListener("click", () => {
+                    if (!confirm("Delete this conversation?")) return;
+                    chats = chats.filter(item => item.id !== chat.id);
+                    if (activeId === chat.id) activeId = chats[0]?.id || null;
+                    saveChats();
+                    renderMessages();
+                    closeModal();
+                    openHistory();
+                });
+
+                row.append(open, remove);
+                list.append(row);
+            }
+            container.append(list);
+        });
+    }
+
+    function openSettings() {
+        openModal("⚙ Settings", container => {
+            const intro = document.createElement("p");
+            intro.textContent = "Personalize how MRG AI responds.";
+            intro.style.color = "#777b98";
+            container.append(intro);
+
+            const row = document.createElement("label");
+            row.className = "setting-row";
+            const textBox = document.createElement("div");
+            const heading = document.createElement("strong");
+            heading.textContent = "Read answers aloud";
+            const description = document.createElement("p");
+            description.textContent = "Use your browser's speech voice.";
+            textBox.append(heading, description);
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = voiceEnabled;
+            checkbox.addEventListener("change", () => setVoiceEnabled(checkbox.checked));
+            row.append(textBox, checkbox);
+            container.append(row);
+
+            const privacy = document.createElement("p");
+            privacy.style.cssText = "font-size:12px;color:#777b98;line-height:1.7";
+            privacy.textContent = "Chat history is stored in this browser. It will not automatically appear on another device.";
+            container.append(privacy);
+        });
+    }
+
+    function setVoiceEnabled(enabled) {
+        voiceEnabled = enabled;
+        voiceButton.classList.toggle("on", enabled);
+        voiceButton.setAttribute("aria-pressed", String(enabled));
+        voiceButton.textContent = enabled ? "🔊 Voice replies: On" : "🔊 Voice replies: Off";
+    }
+
+    function speak(text) {
+        if (!voiceEnabled || !("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-IN";
+        window.speechSynthesis.speak(utterance);
+    }
+
+    voiceButton.addEventListener("click", () => {
+        setVoiceEnabled(!voiceEnabled);
+        statusEl.textContent = voiceEnabled ? "Voice replies are on." : "Voice replies are off.";
+    });
+
+    stopButton.addEventListener("click", () => {
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        statusEl.textContent = "Voice playback stopped.";
+    });
+
+    document.getElementById("historyButton").addEventListener("click", openHistory);
+
+    document.getElementById("newChat").addEventListener("click", () => {
+        if (busy) return;
+        createChat();
+        statusEl.textContent = "Started a new conversation.";
+        input.value = "";
+        input.focus();
+    });
+
+    document.getElementById("clearButton").addEventListener("click", () => {
+        const chat = getActiveChat();
+        if (!chat || !chat.messages.length) {
+            statusEl.textContent = "This chat is already empty.";
+            return;
+        }
+        if (!confirm("Clear all messages in this conversation?")) return;
+        chat.messages = [];
+        chat.title = "New chat";
+        chat.updated = Date.now();
+        saveChats();
+        renderMessages();
+        statusEl.textContent = "This conversation has been cleared.";
+    });
+
+    document.querySelectorAll("nav button").forEach(button => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll("nav button").forEach(item => item.classList.remove("active"));
+            button.classList.add("active");
+            const action = button.dataset.action;
+
+            if (action === "home") {
+                document.getElementById("home").scrollIntoView({behavior:"smooth"});
+            } else if (action === "about") {
+                openModal("ⓘ About MRG AI", container => {
+                    const p = document.createElement("p");
+                    p.style.lineHeight = "1.8";
+                    p.textContent = "MRG AI is a friendly AI assistant created by Manju R Gowda. Ask questions, explore ideas, and continue conversations in a welcoming space.";
+                    const p2 = document.createElement("p");
+                    p2.textContent = "My founder is Manju R Gowda.";
+                    container.append(p, p2);
+                });
+            } else if (action === "features") {
+                document.getElementById("features").scrollIntoView({behavior:"smooth"});
+            } else if (action === "history") {
+                openHistory();
+            } else if (action === "settings") {
+                openSettings();
+            }
+        });
+    });
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const micButton = document.getElementById("micButton");
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = "en-IN";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.addEventListener("start", () => {
+            statusEl.textContent = "Listening... Please speak.";
+            micButton.classList.add("on");
+        });
+        recognition.addEventListener("result", event => {
+            input.value = event.results[0][0].transcript;
+            input.focus();
+            statusEl.textContent = "Your question is ready to send.";
+        });
+        recognition.addEventListener("error", event => {
+            statusEl.textContent = "Microphone issue: " + event.error + ". You can type instead.";
+        });
+        recognition.addEventListener("end", () => micButton.classList.remove("on"));
+        micButton.addEventListener("click", () => {
+            try { recognition.start(); }
+            catch { statusEl.textContent = "Please wait a moment and try the microphone again."; }
+        });
+    } else {
+        micButton.addEventListener("click", () => {
+            statusEl.textContent = "Voice input isn't supported in this browser. Please try Chrome or type your question.";
+        });
+    }
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (busy) return;
+
+        const question = input.value.trim();
+        if (!question) {
+            statusEl.textContent = "Please type a question first.";
+            return;
+        }
+
+        const chat = ensureChat();
+
+        // Send earlier messages to app.py so MRG AI understands follow-ups.
+        const history = chat.messages.map(item => ({
+            role: item.role === "assistant" ? "model" : "user",
+            text: item.text
+        }));
+
+        addMessage("user", question);
+        input.value = "";
+        busy = true;
+        sendButton.disabled = true;
+        sendButton.style.opacity = ".6";
+        statusEl.textContent = "MRG AI is thinking...";
+        document.getElementById("onlineStatus").textContent = "Thinking...";
+
+        const assistantRow = document.createElement("div");
+        assistantRow.className = "message assistant";
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = "🤖";
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = "Thinking...";
+        assistantRow.append(avatar, bubble);
+        messagesEl.append(assistantRow);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+
+        let answer = "";
+        try {
+            const body = new URLSearchParams();
+            body.set("question", question);
+            body.set("history", JSON.stringify(history));
+
+            const response = await fetch("/ask", {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"},
+                body: body.toString()
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Request failed. Please try again.");
+            }
+
+            bubble.textContent = "";
+            if (response.body && response.body.getReader) {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const {value, done} = await reader.read();
+                    if (done) break;
+                    answer += decoder.decode(value, {stream:true});
+                    bubble.textContent = answer;
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                }
+                answer += decoder.decode();
+                bubble.textContent = answer;
+            } else {
+                answer = await response.text();
+                bubble.textContent = answer;
+            }
+
+            if (!answer.trim()) answer = "I couldn't generate a response. Please try again.";
+            bubble.textContent = answer;
+            addMessage("assistant", answer);
+            statusEl.textContent = "Answer ready! Ask another question whenever you like.";
+            speak(answer);
+        } catch (error) {
+            assistantRow.remove();
+            const message = error.message || "Something went wrong. Please try again.";
+            addMessage("assistant", "Sorry, " + message);
+            statusEl.textContent = "There was a problem getting your answer.";
+        } finally {
+            busy = false;
+            sendButton.disabled = false;
+            sendButton.style.opacity = "1";
+            document.getElementById("onlineStatus").textContent = "Ready to help";
+            input.focus();
+        }
+    });
+
+    // Restore the last conversation on page load.
+    if (!getActiveChat() && chats.length) activeId = chats[0].id;
+    if (!getActiveChat()) createChat();
+    saveChats();
+    renderMessages();
+})();
+</script>
 </body>
 </html>
