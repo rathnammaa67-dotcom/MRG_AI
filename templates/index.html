@@ -1,387 +1,683 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MRG AI - Your Smart Assistant</title>
-    <style>
-        * { box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MRG AI — Your Smart Assistant</title>
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            color: #252538;
-            background: linear-gradient(135deg, #fff8e9, #ffe8d1);
-        }
+<style>
+:root {
+    --blue: #268cff;
+    --purple: #8747ff;
+    --pink: #ed4fa5;
+    --green: #12c9a0;
+    --dark: #102b68;
+}
 
-        header {
-            text-align: center;
-            padding: 35px 15px 20px;
-        }
+* { box-sizing: border-box; }
 
-        .logo {
-            width: 75px;
-            height: 75px;
-            object-fit: contain;
-        }
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--dark);
+    background:
+        radial-gradient(ellipse at 8% 25%, #b8e8ff 0, transparent 35%),
+        radial-gradient(ellipse at 90% 55%, #e5d5ff 0, transparent 35%),
+        linear-gradient(135deg, #f5fbff, #edf4ff 55%, #fff5fb);
+}
 
-        h1 {
-            margin: 15px 0;
-            font-size: clamp(32px, 5vw, 52px);
-            font-weight: 800;
-            background: linear-gradient(90deg, #df1764, #ff7900);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+header {
+    min-height: 86px;
+    padding: 14px 3%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    background: #ffffffdf;
+    border-bottom: 1px solid #d8e8ff;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 5px 25px #4a7cc410;
+}
 
-        header p {
-            color: #626274;
-            font-size: 18px;
-        }
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
 
-        main {
-            width: min(950px, 92%);
-            margin: 20px auto 35px;
-            padding: 25px;
-            background: white;
-            border: 1px solid #ffdfb0;
-            border-radius: 26px;
-            box-shadow: 0 15px 45px #b57c3020;
-        }
+.robot-logo {
+    width: 55px;
+    height: 55px;
+    display: grid;
+    place-items: center;
+    font-size: 43px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #c5f2ff, #dcd0ff);
+}
 
-        form {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+.brand h2 {
+    margin: 0;
+    font-size: 34px;
+    font-weight: 850;
+    letter-spacing: -1px;
+    background: linear-gradient(90deg, #268cff, #8a40f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
 
-        #question {
-            flex: 1 1 300px;
-            min-width: 0;
-            padding: 17px;
-            border: 2px solid #e60070;
-            border-radius: 17px;
-            font-size: 17px;
-            outline-offset: 3px;
-        }
+.brand span {
+    display: block;
+    margin-top: 3px;
+    font-size: 13px;
+    color: #506a9c;
+}
 
-        button {
-            border: 0;
-            border-radius: 15px;
-            padding: 15px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform .15s, opacity .15s;
-        }
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
 
-        button:hover { transform: translateY(-1px); }
-        button:disabled { opacity: .6; cursor: wait; }
+nav a {
+    text-decoration: none;
+    color: #234477;
+    font-weight: 650;
+    padding: 10px 5px;
+}
 
-        .ask {
-            color: white;
-            background: linear-gradient(100deg, #d00069, #ff8500);
-        }
+nav a:hover { color: var(--blue); }
 
-        .tools {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 14px;
-        }
+.hero {
+    max-width: 1450px;
+    margin: 35px auto 20px;
+    padding: 15px 4%;
+    display: grid;
+    grid-template-columns: minmax(180px, .75fr) minmax(0, 2fr);
+    align-items: center;
+    gap: 24px;
+}
 
-        .tool {
-            color: #a50050;
-            background: #fff0f6;
-            border: 1px solid #ffd0e4;
-        }
+.robot-area {
+    text-align: center;
+    position: relative;
+}
 
-        .tool.active {
-            color: white;
-            background: #c90063;
-        }
+.robot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 190px;
+    height: 210px;
+    font-size: 140px;
+    filter: drop-shadow(0 18px 20px #598aff45);
+    animation: float 3s ease-in-out infinite;
+}
 
-        #status {
-            min-height: 24px;
-            margin-top: 15px;
-            color: #656579;
-            font-size: 14px;
-        }
+.hello {
+    display: inline-block;
+    padding: 12px 18px;
+    border-radius: 18px 18px 18px 4px;
+    background: linear-gradient(135deg, #42c9ff, #397cff);
+    color: white;
+    font-weight: 750;
+    box-shadow: 0 7px 20px #438aff35;
+}
 
-        .card {
-            margin-top: 22px;
-            padding: 23px;
-            background: #fff;
-            border: 1px solid #eee;
-            border-left: 6px solid #d00069;
-            border-radius: 16px;
-            box-shadow: 0 8px 25px #00000008;
-        }
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-9px); }
+}
 
-        .card.question-card {
-            background: #fff4df;
-            border-left-color: #ff9700;
-        }
+.welcome {
+    text-align: center;
+}
 
-        .label {
-            margin-bottom: 8px;
-            color: #a36a00;
-            font-weight: bold;
-            font-size: 13px;
-        }
+.welcome .small-title {
+    font-size: clamp(23px, 3vw, 36px);
+    font-weight: 800;
+    margin: 0;
+}
 
-        .answer-title {
-            margin-bottom: 16px;
-            color: #d00069;
-            font-size: 20px;
-            font-weight: bold;
-        }
+.welcome h1 {
+    margin: 5px 0;
+    font-size: clamp(48px, 7vw, 88px);
+    font-weight: 900;
+    letter-spacing: -3px;
+    background: linear-gradient(100deg, #2c9dff, #7355ff, #ce54e8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
 
-        #answer {
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-            line-height: 1.7;
-            font-size: 17px;
-        }
+.welcome p {
+    margin: 8px 0;
+    font-size: clamp(16px, 2vw, 24px);
+    color: #3464a5;
+}
 
-        footer {
-            padding: 10px 15px 30px;
-            text-align: center;
-            color: #888;
-        }
+.chat-panel {
+    width: min(1050px, 92%);
+    margin: 10px auto 35px;
+    padding: clamp(20px, 3vw, 38px);
+    border: 1px solid #ffffff;
+    border-radius: 34px;
+    background: #ffffffd9;
+    box-shadow: 0 22px 60px #6392d426;
+    backdrop-filter: blur(16px);
+}
 
-        footer strong { color: #d00069; }
+#chatForm {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-        @media (max-width: 600px) {
-            header { padding-top: 25px; }
-            main { padding: 17px; }
-            form { flex-direction: column; }
-            #question, .ask { width: 100%; }
-            .tools button { flex: 1 1 auto; }
-        }
-    </style>
+#question {
+    flex: 1;
+    min-width: 0;
+    height: 70px;
+    padding: 0 23px;
+    border: 2px solid #d2e5ff;
+    border-radius: 25px;
+    outline: none;
+    background: #ffffffeb;
+    font-size: 18px;
+    color: #17366d;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+#question:focus {
+    border-color: #559cff;
+    box-shadow: 0 0 0 5px #559cff18;
+}
+
+#chatForm button {
+    width: 65px;
+    height: 65px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4acbff, #3478ff);
+    color: white;
+    font-size: 27px;
+    cursor: pointer;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+    margin-top: 24px;
+}
+
+.control {
+    min-height: 68px;
+    padding: 13px 15px;
+    border: 1px solid transparent;
+    border-radius: 25px;
+    font-size: clamp(14px, 1.5vw, 18px);
+    font-weight: 750;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+}
+
+.control:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px #4778ba22;
+}
+
+#micButton {
+    color: white;
+    background: linear-gradient(120deg, #a25bff, #7140f1);
+    box-shadow: 0 9px 20px #8b51f333;
+}
+
+#voiceButton {
+    color: #16468e;
+    background: linear-gradient(120deg, #d8f1ff, #cceaff);
+    border-color: #b8e0ff;
+}
+
+#voiceButton.active {
+    background: linear-gradient(120deg, #a5f6e6, #66dfc5);
+    color: #075a4a;
+}
+
+#askButton {
+    color: white;
+    background: linear-gradient(120deg, #20d8ad, #08b88e);
+    box-shadow: 0 9px 20px #16c69b33;
+}
+
+#stopButton {
+    display: none;
+    color: #b32955;
+    background: #fff0f5;
+    border-color: #ffd5e3;
+}
+
+#status {
+    text-align: center;
+    margin-top: 22px;
+    color: #2862a6;
+    font-weight: 600;
+    min-height: 24px;
+}
+
+#status::before {
+    content: "●";
+    color: #20cba9;
+    margin-right: 10px;
+}
+
+.result {
+    margin-top: 22px;
+    padding: 23px;
+    border-radius: 22px;
+    background: #fff;
+    border: 1px solid #e4edff;
+    box-shadow: 0 8px 24px #3f6fb20b;
+    overflow-wrap: anywhere;
+}
+
+.result[hidden] { display: none; }
+
+.question-result {
+    background: linear-gradient(120deg, #fff7e7, #fffaf3);
+    border-color: #ffe4bd;
+}
+
+.result-label {
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #b37b22;
+    letter-spacing: .5px;
+}
+
+.answer-title {
+    margin-bottom: 14px;
+    color: #7746ec;
+    font-size: 20px;
+    font-weight: 850;
+}
+
+#answer {
+    white-space: pre-wrap;
+    line-height: 1.8;
+    font-size: 17px;
+    color: #273c60;
+}
+
+.features {
+    max-width: 1250px;
+    width: 92%;
+    margin: 35px auto 45px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.feature {
+    min-height: 165px;
+    padding: 22px 13px;
+    text-align: center;
+    border-radius: 28px;
+    background: #ffffffb9;
+    border: 1px solid #ffffff;
+    box-shadow: 0 10px 25px #537db20b;
+}
+
+.feature-icon {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 12px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: white;
+    font-size: 28px;
+    background: linear-gradient(135deg, #b275ff, #7745ed);
+}
+
+.feature:nth-child(2) .feature-icon {
+    background: linear-gradient(135deg, #ffd969, #ff9e1c);
+}
+
+.feature:nth-child(3) .feature-icon {
+    background: linear-gradient(135deg, #4ce2bc, #06b98f);
+}
+
+.feature:nth-child(4) .feature-icon {
+    background: linear-gradient(135deg, #ff86b5, #f04485);
+}
+
+.feature:nth-child(5) .feature-icon {
+    background: linear-gradient(135deg, #7dbbff, #466eff);
+}
+
+.feature h3 {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.feature p {
+    margin: 8px 0 0;
+    color: #55709b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+footer {
+    padding: 25px 12px;
+    text-align: center;
+    color: white;
+    font-weight: 650;
+    background: linear-gradient(100deg, #62caff, #6487ff, #a77bff);
+    border-radius: 50% 50% 0 0 / 28px 28px 0 0;
+}
+
+footer span { margin: 0 7px; }
+
+@media (max-width: 850px) {
+    header { justify-content: center; }
+    nav { justify-content: center; gap: 14px; }
+    .hero { grid-template-columns: 1fr; margin-top: 20px; }
+    .robot-area { display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .robot { width: 110px; height: 115px; font-size: 90px; }
+    .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+    .brand h2 { font-size: 29px; }
+    .robot { width: 75px; height: 85px; font-size: 65px; }
+    .chat-panel { border-radius: 24px; padding: 18px; }
+    #chatForm { gap: 8px; }
+    #question { height: 60px; padding: 0 14px; font-size: 16px; border-radius: 19px; }
+    #chatForm button { width: 54px; height: 54px; }
+    .controls { grid-template-columns: 1fr; gap: 10px; }
+    .control { min-height: 58px; }
+    .features { gap: 10px; }
+    .feature { padding: 17px 9px; min-height: 150px; }
+    .feature h3 { font-size: 14px; }
+}
+</style>
 </head>
+
 <body>
-    <header>
-        <img
-            class="logo"
-            src="{{ url_for('static', filename='mrg-ai-logo.png') }}"
-            alt="MRG AI Logo"
-            onerror="this.style.display='none'"
+
+<header>
+    <div class="brand">
+        <div class="robot-logo">🤖</div>
+        <div>
+            <h2>MRG AI</h2>
+            <span>Your Smart Assistant ✨</span>
+        </div>
+    </div>
+
+    <nav>
+        <a href="#home">⌂ Home</a>
+        <a href="#about">ⓘ About</a>
+        <a href="#features">♧ Features</a>
+    </nav>
+</header>
+
+<section class="hero" id="home">
+    <div class="robot-area">
+        <div class="robot" aria-label="Friendly robot">🤖</div>
+        <div class="hello">Hello! 👋</div>
+    </div>
+
+    <div class="welcome">
+        <p class="small-title">Welcome to</p>
+        <h1>MRG AI</h1>
+        <p>Ask anything... I'm here to help! ✨</p>
+    </div>
+</section>
+
+<main class="chat-panel" id="about">
+    <form id="chatForm">
+        <input
+            id="question"
+            name="question"
+            type="text"
+            placeholder="Type your question here..."
+            autocomplete="off"
+            required
+            aria-label="Your question"
         >
-        <h1>Welcome to MRG AI</h1>
-        <p>Ask anything. Learn anything. Discover anything.</p>
-    </header>
+        <button type="submit" aria-label="Send question" title="Send question">➤</button>
+    </form>
 
-    <main>
-        <form id="chatForm">
-            <input
-                id="question"
-                name="question"
-                type="text"
-                placeholder="Ask MRG AI anything..."
-                autocomplete="off"
-                required
-            >
-            <button class="ask" id="askButton" type="submit">
-                ✨ Ask MRG AI
-            </button>
-        </form>
+    <div class="controls">
+        <button class="control" id="micButton" type="button">
+            🎙 Speak a question
+        </button>
 
-        <div class="tools">
-            <button class="tool" id="micButton" type="button">
-                🎤 Speak a question
-            </button>
-            <button class="tool" id="voiceButton" type="button">
-                🔊 Voice replies: OFF
-            </button>
-            <button class="tool" id="stopButton" type="button">
-                ⏹ Stop speaking
-            </button>
-        </div>
+        <button class="control" id="voiceButton" type="button">
+            🔊 Voice replies: OFF
+        </button>
 
-        <div id="status" role="status" aria-live="polite">
-            Ready to help!
-        </div>
+        <button class="control" id="askButton" type="submit" form="chatForm">
+            ✨ Ask MRG AI
+        </button>
 
-        <section class="card question-card" id="questionCard" hidden>
-            <div class="label">YOUR QUESTION</div>
-            <div id="questionText"></div>
-        </section>
+        <button class="control" id="stopButton" type="button">
+            ⏹ Stop speaking
+        </button>
+    </div>
 
-        <section class="card" id="answerCard" hidden>
-            <div class="answer-title">🤖 MRG AI</div>
-            <div id="answer" aria-live="polite"></div>
-        </section>
-    </main>
+    <div id="status" role="status" aria-live="polite">Ready to help you! 😊</div>
 
-    <footer>
-        Powered by MRG AI · Created by <strong>Manju R Gowda</strong>
-    </footer>
+    <section class="result question-result" id="questionCard" hidden>
+        <div class="result-label">YOUR QUESTION</div>
+        <div id="questionText"></div>
+    </section>
 
-    <script>
-        const form = document.getElementById("chatForm");
-        const input = document.getElementById("question");
-        const askButton = document.getElementById("askButton");
-        const micButton = document.getElementById("micButton");
-        const voiceButton = document.getElementById("voiceButton");
-        const stopButton = document.getElementById("stopButton");
-        const statusBox = document.getElementById("status");
-        const questionCard = document.getElementById("questionCard");
-        const questionText = document.getElementById("questionText");
-        const answerCard = document.getElementById("answerCard");
-        const answerBox = document.getElementById("answer");
+    <section class="result" id="answerCard" hidden>
+        <div class="answer-title">🤖 MRG AI</div>
+        <div id="answer" aria-live="polite"></div>
+    </section>
+</main>
 
-        let voiceReplies = false;
-        let recognition = null;
+<section class="features" id="features">
+    <article class="feature">
+        <div class="feature-icon">🧠</div>
+        <h3>Get Answers</h3>
+        <p>Learn, explore, discover.</p>
+    </article>
 
-        function setStatus(message) {
-            statusBox.textContent = message;
+    <article class="feature">
+        <div class="feature-icon">💡</div>
+        <h3>Be More Productive</h3>
+        <p>Save time, work smarter.</p>
+    </article>
+
+    <article class="feature">
+        <div class="feature-icon">🛡</div>
+        <h3>Stay Informed</h3>
+        <p>Find helpful information.</p>
+    </article>
+
+    <article class="feature">
+        <div class="feature-icon">♥</div>
+        <h3>Always Here</h3>
+        <p>Your AI companion.</p>
+    </article>
+
+    <article class="feature">
+        <div class="feature-icon">✨</div>
+        <h3>Powered by Innovation</h3>
+        <p>Built with care for you.</p>
+    </article>
+</section>
+
+<footer>
+    MRG AI <span>♥</span> Smarter Together
+    <br><br>
+    Created by Manju R Gowda
+</footer>
+
+<script>
+const form = document.getElementById("chatForm");
+const input = document.getElementById("question");
+const micButton = document.getElementById("micButton");
+const voiceButton = document.getElementById("voiceButton");
+const stopButton = document.getElementById("stopButton");
+const statusBox = document.getElementById("status");
+const questionCard = document.getElementById("questionCard");
+const questionText = document.getElementById("questionText");
+const answerCard = document.getElementById("answerCard");
+const answerBox = document.getElementById("answer");
+const submitButtons = form.querySelectorAll('button[type="submit"], button[form="chatForm"]');
+
+let voiceReplies = false;
+let recognition = null;
+
+function setStatus(message) {
+    statusBox.textContent = message;
+}
+
+function speakAnswer(text) {
+    if (!voiceReplies || !("speechSynthesis" in window)) return;
+
+    window.speechSynthesis.cancel();
+
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-IN";
+    speech.rate = 1;
+
+    window.speechSynthesis.speak(speech);
+}
+
+voiceButton.addEventListener("click", () => {
+    voiceReplies = !voiceReplies;
+
+    voiceButton.textContent = voiceReplies
+        ? "🔊 Voice replies: ON"
+        : "🔊 Voice replies: OFF";
+
+    voiceButton.classList.toggle("active", voiceReplies);
+
+    if (!voiceReplies && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+    }
+
+    setStatus(voiceReplies
+        ? "Voice replies enabled!"
+        : "Voice replies disabled.");
+});
+
+stopButton.addEventListener("click", () => {
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    setStatus("Stopped speaking.");
+});
+
+const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        micButton.classList.add("active");
+        setStatus("Listening... Speak your question.");
+    };
+
+    recognition.onresult = (event) => {
+        input.value = event.results[0][0].transcript;
+        setStatus("Question captured. Asking MRG AI...");
+        form.requestSubmit();
+    };
+
+    recognition.onerror = (event) => {
+        setStatus("Microphone error: " + event.error +
+            ". Check your browser's microphone permission.");
+    };
+
+    recognition.onend = () => {
+        micButton.classList.remove("active");
+    };
+
+    micButton.addEventListener("click", () => {
+        try {
+            recognition.start();
+        } catch (error) {
+            setStatus("Please wait a moment, then try the microphone again.");
         }
+    });
+} else {
+    micButton.addEventListener("click", () => {
+        setStatus("Voice input is not supported by this browser. Try Chrome.");
+    });
+}
 
-        function speakAnswer(text) {
-            if (!voiceReplies || !("speechSynthesis" in window)) return;
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-            window.speechSynthesis.cancel();
+    const question = input.value.trim();
+    if (!question) return;
 
-            const speech = new SpeechSynthesisUtterance(text);
-            speech.lang = "en-IN";
-            speech.rate = 1;
-            window.speechSynthesis.speak(speech);
-        }
+    questionCard.hidden = false;
+    answerCard.hidden = false;
+    questionText.textContent = question;
+    answerBox.textContent = "";
+    submitButtons.forEach(button => button.disabled = true);
+    setStatus("MRG AI is thinking... ✨");
 
-        voiceButton.addEventListener("click", () => {
-            voiceReplies = !voiceReplies;
-            voiceButton.textContent = voiceReplies
-                ? "🔊 Voice replies: ON"
-                : "🔊 Voice replies: OFF";
-
-            voiceButton.classList.toggle("active", voiceReplies);
-
-            if (!voiceReplies && "speechSynthesis" in window) {
-                window.speechSynthesis.cancel();
-            }
-
-            setStatus(voiceReplies
-                ? "Voice replies enabled."
-                : "Voice replies disabled.");
+    try {
+        const response = await fetch("/ask", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+            },
+            body: new URLSearchParams({ question })
         });
 
-        stopButton.addEventListener("click", () => {
-            if ("speechSynthesis" in window) {
-                window.speechSynthesis.cancel();
-            }
-            setStatus("Stopped speaking.");
-        });
+        if (!response.ok) {
+            throw new Error("The server returned an error. Please try again.");
+        }
 
-        const SpeechRecognition =
-            window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!response.body) {
+            throw new Error("Your browser could not receive the answer.");
+        }
 
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = "en-IN";
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullAnswer = "";
 
-            recognition.onstart = () => {
-                micButton.classList.add("active");
-                setStatus("Listening... Please speak your question.");
-            };
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
 
-            recognition.onresult = (event) => {
-                input.value = event.results[0][0].transcript;
-                setStatus("Question captured. Sending it to MRG AI...");
-                form.requestSubmit();
-            };
+            fullAnswer += decoder.decode(value, { stream: true });
+            answerBox.textContent = fullAnswer;
+        }
 
-            recognition.onerror = (event) => {
-                setStatus("Microphone error: " + event.error +
-                    ". Check your browser's microphone permission.");
-            };
+        fullAnswer += decoder.decode();
+        answerBox.textContent = fullAnswer;
 
-            recognition.onend = () => {
-                micButton.classList.remove("active");
-            };
-
-            micButton.addEventListener("click", () => {
-                try {
-                    recognition.start();
-                } catch (error) {
-                    setStatus("Please wait a moment and try the microphone again.");
-                }
-            });
+        if (fullAnswer.trim()) {
+            setStatus("Answer complete! 😊");
+            speakAnswer(fullAnswer);
         } else {
-            micButton.addEventListener("click", () => {
-                setStatus(
-                    "Voice input is not supported by this browser. " +
-                    "Try the latest version of Chrome."
-                );
-            });
+            setStatus("No answer received. Please try again.");
         }
+    } catch (error) {
+        answerBox.textContent =
+            "Sorry, something went wrong. Please try again.";
+        setStatus(error.message);
+    } finally {
+        submitButtons.forEach(button => button.disabled = false);
+    }
+});
+</script>
 
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
-
-            const question = input.value.trim();
-            if (!question) return;
-
-            questionCard.hidden = false;
-            answerCard.hidden = false;
-            questionText.textContent = question;
-            answerBox.textContent = "";
-            askButton.disabled = true;
-            setStatus("MRG AI is thinking...");
-
-            try {
-                const response = await fetch("/ask", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-                    },
-                    body: new URLSearchParams({ question })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || "Request failed.");
-                }
-
-                if (!response.body) {
-                    throw new Error("Your browser could not receive the answer.");
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let fullAnswer = "";
-
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
-
-                    fullAnswer += decoder.decode(value, { stream: true });
-                    answerBox.textContent = fullAnswer;
-                }
-
-                fullAnswer += decoder.decode();
-                answerBox.textContent = fullAnswer;
-
-                if (fullAnswer.trim()) {
-                    setStatus("Answer complete.");
-                    speakAnswer(fullAnswer);
-                } else {
-                    setStatus("No answer received. Please try again.");
-                }
-            } catch (error) {
-                answerBox.textContent =
-                    "Sorry, something went wrong. " +
-                    "Please try again. " + error.message;
-                setStatus("Could not get an answer.");
-            } finally {
-                askButton.disabled = false;
-            }
-        });
-    </script>
 </body>
 </html>
