@@ -113,7 +113,7 @@ def ask():
 
     # Search the web for fresh information.
     web_results = search_web(question)
-
+app.logger.info("WEB SEARCH RESULTS: %s", web_results[:1000])
     if web_results:
         search_context = f"""
 LIVE WEB SEARCH RESULTS:
