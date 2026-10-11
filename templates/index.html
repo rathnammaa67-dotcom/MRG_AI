@@ -1,441 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>MRG AI</title>
-
+    <title>MRG AI - Your Smart Assistant</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
             min-height: 100vh;
-            background: linear-gradient(135deg, #fffaf0, #fff2d8);
-            color: #222;
+            font-family: Arial, sans-serif;
+            color: #252538;
+            background: linear-gradient(135deg, #fff8e9, #ffe8d1);
         }
 
         header {
-            height: 85px;
-            background: white;
-            border-bottom: 3px solid #ff9900;
-            display: flex;
-            align-items: center;
-            padding: 10px 35px;
-            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            padding: 35px 15px 20px;
         }
 
         .logo {
-            height: 62px;
-            width: auto;
+            width: 75px;
+            height: 75px;
+            object-fit: contain;
         }
 
-        .main {
-            max-width: 950px;
-            margin: auto;
-            padding: 55px 20px;
-        }
-
-        .welcome {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .robot {
-            font-size: 55px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-8px);
-            }
-        }
-
-        .welcome h1 {
-            margin-top: 10px;
-            font-size: 42px;
+        h1 {
+            margin: 15px 0;
+            font-size: clamp(32px, 5vw, 52px);
             font-weight: 800;
-            background: linear-gradient(90deg, #c00068, #ff9900);
+            background: linear-gradient(90deg, #df1764, #ff7900);
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
         }
 
-        .welcome p {
-            margin-top: 10px;
+        header p {
+            color: #626274;
             font-size: 18px;
-            color: #666;
         }
 
-        .chat-card {
+        main {
+            width: min(950px, 92%);
+            margin: 20px auto 35px;
+            padding: 25px;
             background: white;
-            border-radius: 25px;
-            padding: 30px;
-            box-shadow: 0 15px 45px rgba(180, 90, 0, 0.15);
-            border: 1px solid #ffe1b3;
+            border: 1px solid #ffdfb0;
+            border-radius: 26px;
+            box-shadow: 0 15px 45px #b57c3020;
         }
 
-        .input-area {
+        form {
             display: flex;
+            flex-wrap: wrap;
             gap: 12px;
         }
 
-        input {
-            flex: 1;
-            height: 58px;
-            padding: 0 20px;
-            border: 2px solid #eadede;
-            border-radius: 16px;
-            font-size: 16px;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #c00068;
-            box-shadow: 0 0 0 4px rgba(192, 0, 104, 0.08);
+        #question {
+            flex: 1 1 300px;
+            min-width: 0;
+            padding: 17px;
+            border: 2px solid #e60070;
+            border-radius: 17px;
+            font-size: 17px;
+            outline-offset: 3px;
         }
 
         button {
-            height: 58px;
-            padding: 0 25px;
-            border: none;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #c00068, #ff9900);
-            color: white;
+            border: 0;
+            border-radius: 15px;
+            padding: 15px 20px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            min-width: 170px;
+            transition: transform .15s, opacity .15s;
         }
 
-        button:disabled {
-            opacity: 0.7;
-            cursor: wait;
+        button:hover { transform: translateY(-1px); }
+        button:disabled { opacity: .6; cursor: wait; }
+
+        .ask {
+            color: white;
+            background: linear-gradient(100deg, #d00069, #ff8500);
         }
 
-        .thinking {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            text-align: center;
-            color: #c00068;
-            background: #fff7e8;
-            border-radius: 12px;
-            font-weight: bold;
+        .tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
         }
 
-        .answer {
-            display: none;
-            margin-top: 28px;
+        .tool {
+            color: #a50050;
+            background: #fff0f6;
+            border: 1px solid #ffd0e4;
         }
 
-        .question-box {
-            background: #fff5df;
-            border-left: 5px solid #ff9900;
-            padding: 16px 18px;
-            border-radius: 12px;
-            margin-bottom: 18px;
+        .tool.active {
+            color: white;
+            background: #c90063;
         }
 
-        .question-label {
-            font-size: 13px;
-            color: #a66a00;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .question-text {
-            font-size: 16px;
-        }
-
-        .answer-box {
-            background: white;
-            border: 1px solid #eee;
-            border-left: 5px solid #c00068;
-            padding: 22px;
-            border-radius: 12px;
-            line-height: 1.7;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-        }
-
-        .answer-title {
-            color: #c00068;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-
-        .answer-text {
-            white-space: pre-wrap;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 35px;
-            color: #888;
+        #status {
+            min-height: 24px;
+            margin-top: 15px;
+            color: #656579;
             font-size: 14px;
         }
 
-        .creator {
-            color: #c00068;
+        .card {
+            margin-top: 22px;
+            padding: 23px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-left: 6px solid #d00069;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px #00000008;
+        }
+
+        .card.question-card {
+            background: #fff4df;
+            border-left-color: #ff9700;
+        }
+
+        .label {
+            margin-bottom: 8px;
+            color: #a36a00;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .answer-title {
+            margin-bottom: 16px;
+            color: #d00069;
+            font-size: 20px;
             font-weight: bold;
         }
 
-        @media (max-width: 650px) {
+        #answer {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            line-height: 1.7;
+            font-size: 17px;
+        }
 
-            header {
-                justify-content: center;
-            }
+        footer {
+            padding: 10px 15px 30px;
+            text-align: center;
+            color: #888;
+        }
 
-            .main {
-                padding: 35px 15px;
-            }
+        footer strong { color: #d00069; }
 
-            .welcome h1 {
-                font-size: 32px;
-            }
-
-            .chat-card {
-                padding: 18px;
-            }
-
-            .input-area {
-                flex-direction: column;
-            }
-
-            button {
-                width: 100%;
-            }
+        @media (max-width: 600px) {
+            header { padding-top: 25px; }
+            main { padding: 17px; }
+            form { flex-direction: column; }
+            #question, .ask { width: 100%; }
+            .tools button { flex: 1 1 auto; }
         }
     </style>
 </head>
-
-<body><img src="{{ url_for('static', filename='mrg-ai-logo.png') }}" alt="MRG AI Logo" width="150">
-
+<body>
     <header>
-
         <img
+            class="logo"
             src="{{ url_for('static', filename='mrg-ai-logo.png') }}"
             alt="MRG AI Logo"
-            class="logo"
+            onerror="this.style.display='none'"
         >
-
+        <h1>Welcome to MRG AI</h1>
+        <p>Ask anything. Learn anything. Discover anything.</p>
     </header>
 
+    <main>
+        <form id="chatForm">
+            <input
+                id="question"
+                name="question"
+                type="text"
+                placeholder="Ask MRG AI anything..."
+                autocomplete="off"
+                required
+            >
+            <button class="ask" id="askButton" type="submit">
+                ✨ Ask MRG AI
+            </button>
+        </form>
 
-    <main class="main">
-
-        <section class="welcome">
-
-            <div class="robot">🤖</div>
-
-            <h1>Welcome to MRG AI</h1>
-
-            <p>
-                Ask anything. Learn anything. Discover anything.
-            </p>
-
-        </section>
-
-
-        <div class="chat-card">
-
-            <form id="questionForm">
-
-                <div class="input-area">
-
-                    <input
-                        type="text"
-                        id="question"
-                        placeholder="Ask MRG AI anything..."
-                        autocomplete="off"
-                        autofocus
-                        required
-                    >
-
-                    <button type="submit" id="askButton">
-                        ✨ Ask MRG AI
-                    </button>
-
-                </div>
-
-            </form>
-
-
-            <div class="thinking" id="thinking">
-                🤖 MRG AI is thinking...
-            </div>
-
-
-            <div class="answer" id="answer">
-
-                <div class="question-box">
-
-                    <div class="question-label">
-                        YOUR QUESTION
-                    </div>
-
-                    <div class="question-text" id="questionText">
-                    </div>
-
-                </div>
-
-
-                <div class="answer-box">
-
-                    <div class="answer-title">
-                        🤖 MRG AI
-                    </div>
-
-                    <div class="answer-text" id="answerText">
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div class="tools">
+            <button class="tool" id="micButton" type="button">
+                🎤 Speak a question
+            </button>
+            <button class="tool" id="voiceButton" type="button">
+                🔊 Voice replies: OFF
+            </button>
+            <button class="tool" id="stopButton" type="button">
+                ⏹ Stop speaking
+            </button>
         </div>
 
+        <div id="status" role="status" aria-live="polite">
+            Ready to help!
+        </div>
 
-        <footer>
+        <section class="card question-card" id="questionCard" hidden>
+            <div class="label">YOUR QUESTION</div>
+            <div id="questionText"></div>
+        </section>
 
-            Powered by MRG AI • Created by
-            <span class="creator">Manju R Gowda</span>
-
-        </footer>
-
+        <section class="card" id="answerCard" hidden>
+            <div class="answer-title">🤖 MRG AI</div>
+            <div id="answer" aria-live="polite"></div>
+        </section>
     </main>
 
+    <footer>
+        Powered by MRG AI · Created by <strong>Manju R Gowda</strong>
+    </footer>
 
     <script>
-
-        const form = document.getElementById("questionForm");
-        const questionInput = document.getElementById("question");
+        const form = document.getElementById("chatForm");
+        const input = document.getElementById("question");
         const askButton = document.getElementById("askButton");
-        const thinking = document.getElementById("thinking");
-
-        const answer = document.getElementById("answer");
+        const micButton = document.getElementById("micButton");
+        const voiceButton = document.getElementById("voiceButton");
+        const stopButton = document.getElementById("stopButton");
+        const statusBox = document.getElementById("status");
+        const questionCard = document.getElementById("questionCard");
         const questionText = document.getElementById("questionText");
-        const answerText = document.getElementById("answerText");
+        const answerCard = document.getElementById("answerCard");
+        const answerBox = document.getElementById("answer");
 
+        let voiceReplies = false;
+        let recognition = null;
 
-        form.addEventListener("submit", async function(event) {
+        function setStatus(message) {
+            statusBox.textContent = message;
+        }
 
-            event.preventDefault();
+        function speakAnswer(text) {
+            if (!voiceReplies || !("speechSynthesis" in window)) return;
 
-            const question = questionInput.value.trim();
+            window.speechSynthesis.cancel();
 
-            if (!question) {
-                return;
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = "en-IN";
+            speech.rate = 1;
+            window.speechSynthesis.speak(speech);
+        }
+
+        voiceButton.addEventListener("click", () => {
+            voiceReplies = !voiceReplies;
+            voiceButton.textContent = voiceReplies
+                ? "🔊 Voice replies: ON"
+                : "🔊 Voice replies: OFF";
+
+            voiceButton.classList.toggle("active", voiceReplies);
+
+            if (!voiceReplies && "speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
             }
 
-
-            // Show loading state
-
-            askButton.disabled = true;
-            askButton.innerHTML = "🤖 Thinking...";
-
-            thinking.style.display = "block";
-
-            answer.style.display = "block";
-
-            questionText.textContent = question;
-
-            answerText.textContent = "";
-
-
-            // Clear the question bar
-
-            questionInput.value = "";
-
-
-            try {
-
-                const response = await fetch("/ask", {
-
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    },
-
-                    body: "question=" + encodeURIComponent(question)
-
-                });
-
-
-                if (!response.ok) {
-                    throw new Error("Server error");
-                }
-
-
-                // Answer has started arriving
-
-                thinking.style.display = "none";
-
-
-                const reader = response.body.getReader();
-
-                const decoder = new TextDecoder();
-
-
-                while (true) {
-
-                    const { value, done } = await reader.read();
-
-                    if (done) {
-                        break;
-                    }
-
-
-                    const text = decoder.decode(value, {
-                        stream: true
-                    });
-
-
-                    answerText.textContent += text;
-
-
-                    // Automatically scroll to the answer
-
-                    answer.scrollIntoView({
-                        behavior: "smooth",
-                        block: "nearest"
-                    });
-
-                }
-
-
-            } catch (error) {
-
-                thinking.style.display = "none";
-
-                answerText.textContent =
-                    "⚠️ Manju's server is currently busy. Please try again.";
-
-            }
-
-
-            askButton.disabled = false;
-
-            askButton.innerHTML = "✨ Ask MRG AI";
-
-            questionInput.focus();
-
+            setStatus(voiceReplies
+                ? "Voice replies enabled."
+                : "Voice replies disabled.");
         });
 
+        stopButton.addEventListener("click", () => {
+            if ("speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+            }
+            setStatus("Stopped speaking.");
+        });
+
+        const SpeechRecognition =
+            window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = "en-IN";
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                micButton.classList.add("active");
+                setStatus("Listening... Please speak your question.");
+            };
+
+            recognition.onresult = (event) => {
+                input.value = event.results[0][0].transcript;
+                setStatus("Question captured. Sending it to MRG AI...");
+                form.requestSubmit();
+            };
+
+            recognition.onerror = (event) => {
+                setStatus("Microphone error: " + event.error +
+                    ". Check your browser's microphone permission.");
+            };
+
+            recognition.onend = () => {
+                micButton.classList.remove("active");
+            };
+
+            micButton.addEventListener("click", () => {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    setStatus("Please wait a moment and try the microphone again.");
+                }
+            });
+        } else {
+            micButton.addEventListener("click", () => {
+                setStatus(
+                    "Voice input is not supported by this browser. " +
+                    "Try the latest version of Chrome."
+                );
+            });
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const question = input.value.trim();
+            if (!question) return;
+
+            questionCard.hidden = false;
+            answerCard.hidden = false;
+            questionText.textContent = question;
+            answerBox.textContent = "";
+            askButton.disabled = true;
+            setStatus("MRG AI is thinking...");
+
+            try {
+                const response = await fetch("/ask", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+                    },
+                    body: new URLSearchParams({ question })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || "Request failed.");
+                }
+
+                if (!response.body) {
+                    throw new Error("Your browser could not receive the answer.");
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullAnswer = "";
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    fullAnswer += decoder.decode(value, { stream: true });
+                    answerBox.textContent = fullAnswer;
+                }
+
+                fullAnswer += decoder.decode();
+                answerBox.textContent = fullAnswer;
+
+                if (fullAnswer.trim()) {
+                    setStatus("Answer complete.");
+                    speakAnswer(fullAnswer);
+                } else {
+                    setStatus("No answer received. Please try again.");
+                }
+            } catch (error) {
+                answerBox.textContent =
+                    "Sorry, something went wrong. " +
+                    "Please try again. " + error.message;
+                setStatus("Could not get an answer.");
+            } finally {
+                askButton.disabled = false;
+            }
+        });
     </script>
-
 </body>
-
 </html>
