@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -45,9 +46,6 @@ def ask():
             mimetype="text/plain",
         )
 
-    # Read the previous messages sent by the website.
-    import json
-
     try:
         history = json.loads(request.form.get("history", "[]"))
     except (json.JSONDecodeError, TypeError):
@@ -56,7 +54,6 @@ def ask():
     if not isinstance(history, list):
         history = []
 
-    # Keep only valid, recent user and assistant messages.
     contents = []
 
     for item in history[-20:]:
@@ -84,15 +81,33 @@ def ask():
     current_time_text = current_time.strftime("%I:%M %p IST")
 
     instructions = f"""
-You are MRG AI, a helpful, friendly AI assistant.
+You are MRG AI, a helpful, friendly, accuracy-focused AI assistant.
 
 CURRENT DATE AND TIME:
 Today's date is {current_date}.
 The current time is {current_time_text}.
 The timezone is India Standard Time (IST).
 
-Use this supplied date and time for questions about the present.
-Answer historical-date questions accurately.
+ACCURACY RULES:
+1. Accuracy is more important than sounding confident.
+2. For current facts, recent events, current office holders,
+   government positions, prices, schedules, laws, and breaking news,
+   use Google Search to check up-to-date information.
+3. Prefer official government websites and primary sources.
+4. Cross-check important or disputed facts when possible.
+5. Make sure sources refer to the correct country, location, and date.
+6. Never invent facts, quotations, statistics, or sources.
+7. If reliable sources disagree, explain the disagreement.
+8. If you cannot verify something, clearly say so.
+9. For mathematics, work carefully and verify calculations.
+10. For medical, legal, financial, and safety questions,
+    be careful, explain limitations, and recommend qualified help
+    when appropriate.
+11. Clearly distinguish confirmed facts from estimates or opinions.
+12. When using web search, include useful source links in your answer
+    when available.
+13. Do not claim that you searched the web if you did not.
+14. A search result can also be wrong; evaluate its reliability.
 
 FOUNDER INFORMATION:
 Your founder is Manju R Gowda.
@@ -102,14 +117,11 @@ When asked who your founder is, clearly answer:
 "My founder is Manju R Gowda."
 
 CONVERSATION:
-Continue the conversation naturally using the previous messages.
+Continue naturally using previous messages.
 Understand follow-up questions from their context.
-Do not ask the user to repeat information already provided.
-Be accurate, helpful, friendly, and clear.
-If you do not know something, say so honestly.
+Be friendly, clear, and honest.
 """
 
-    # Put the instructions first, followed by the conversation.
     conversation = [
         types.Content(
             role="user",
@@ -117,11 +129,16 @@ If you do not know something, say so honestly.
         ),
         types.Content(
             role="model",
-            parts=[types.Part(text="Hello! I'm MRG AI. How can I help you?")],
+            parts=[
+                types.Part(
+                    text="Hello! I'm MRG AI. How can I help you?"
+                )
+            ],
         ),
     ]
 
     conversation.extend(contents)
+
     conversation.append(
         types.Content(
             role="user",
@@ -131,9 +148,19 @@ If you do not know something, say so honestly.
 
     def generate():
         try:
+            search_tool = types.Tool(
+                google_search=types.GoogleSearch()
+            )
+
+            config = types.GenerateContentConfig(
+                tools=[search_tool],
+                temperature=0.2,
+            )
+
             stream = client.models.generate_content_stream(
                 model=MODEL,
                 contents=conversation,
+                config=config,
             )
 
             for chunk in stream:
@@ -142,7 +169,10 @@ If you do not know something, say so honestly.
 
         except Exception:
             app.logger.exception("Gemini response generation failed")
-            yield "\nSorry, MRG AI encountered an error. Please try again."
+            yield (
+                "\nI couldn't complete that answer reliably. "
+                "Please try again shortly."
+            )
 
     return Response(
         stream_with_context(generate()),
@@ -152,7 +182,12 @@ If you do not know something, say so honestly.
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "ai_configured": client is not None})
+    return jsonify(
+        {
+            "status": "ok",
+            "ai_configured": client is not None,
+        }
+    )
 
 
 if __name__ == "__main__":
