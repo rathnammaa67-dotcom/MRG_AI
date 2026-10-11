@@ -1,66 +1,93 @@
-from flask import Flask, render_template, request, Response, stream_with_context
-from google import genai
 import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+from flask import Flask, request, Response, stream_with_context, render_template
+from google import genai
 
 app = Flask(__name__)
 
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY")
-)
+API_KEY = os.environ.get("GEMINI_API_KEY")
+
+client = genai.Client(api_key=API_KEY) if API_KEY else None
+
+MODEL = "gemini-3.5-flash-lite"
+TIMEZONE = ZoneInfo("Asia/Kolkata")
 
 
-@app.route("/", methods=["GET"])
+@app.route("/")
 def home():
     return render_template("index.html")
 
 
 @app.route("/ask", methods=["POST"])
 def ask():
-
     question = request.form.get("question", "").strip()
 
     if not question:
-        return "Please enter a question.", 400
+        return Response(
+            "Please enter a question.",
+            status=400,
+            mimetype="text/plain"
+        )
 
-    def generate():
+    if client is None:
+        return Response(
+            "AI is not configured. Please check the GEMINI_API_KEY setting.",
+            status=500,
+            mimetype="text/plain"
+        )
 
-        try:
-            response = client.models.generate_content_stream(
-                model="gemini-3.1-flash-lite",
-                contents=f"""You are MRG AI, an AI assistant.
+    current_time = datetime.now(TIMEZONE)
+    current_date = current_time.strftime("%A, %B %d, %Y")
+    current_time_text = current_time.strftime("%I:%M %p IST")
+
+    instructions = f"""
+You are MRG AI, a helpful, friendly AI assistant.
+
+IMPORTANT CURRENT DATE AND TIME:
+Today's date is {current_date}.
+The current time is {current_time_text}.
+The timezone is India Standard Time (IST).
+
+Always use this supplied date when answering questions about today's date,
+the current year, or the current time. Never invent an old date.
+For questions about historical dates, answer based on the actual historical date.
+
+FOUNDER INFORMATION:
 Your founder is Manju R Gowda.
 You were trained by Manjur Gowda.
 
-If someone asks who your founder is, say:
+When asked who your founder is, clearly answer:
 "My founder is Manju R Gowda."
 
-If someone asks who trained you, say:
-"I was trained by Manjur Gowda."
+Be accurate, helpful, and clear. If you do not know something,
+say so honestly.
 
-For all other questions, answer helpfully and naturally.
+USER QUESTION:
+{question}
+"""
 
-User question: {question}""",
-                config={
-                    "max_output_tokens": 300,
-                    "temperature": 0.3
-                }
+    def generate():
+        try:
+            stream = client.models.generate_content_stream(
+                model=MODEL,
+                contents=instructions,
             )
 
-            for chunk in response:
+            for chunk in stream:
                 if chunk.text:
                     yield chunk.text
 
         except Exception:
-            yield (
-                "⚠️ Manju's server is currently busy. "
-                "Please wait a few seconds and try again."
-            )
+            app.logger.exception("Gemini response generation failed")
+            yield "\nSorry, MRG AI encountered an error. Please try again."
 
     return Response(
         stream_with_context(generate()),
-        mimetype="text/plain"
+        mimetype="text/plain; charset=utf-8"
     )
 
 
 if __name__ == "__main__":
-    app.run(debug=True, threaded=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
