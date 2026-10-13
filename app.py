@@ -9,25 +9,30 @@ from ddgs import DDGS
 
 app = Flask(__name__)
 
+# API configuration
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# Primary model and backup model
 MODEL = "gemini-3.1-flash-lite"
 BACKUP_MODEL = "gemini-2.5-flash"
 
 client = genai.Client(api_key=API_KEY) if API_KEY else None
 
 
+# --------------------------------------------------
+# WEB SEARCH
+# --------------------------------------------------
+
 def search_web(question):
-    """Try web search quickly; continue without it if it fails."""
+    """Search the web and return formatted results."""
+
     try:
-        def search_web(question):
+        with DDGS(timeout=10) as ddgs:
             results = list(
                 ddgs.text(
-                    query=question + " official information",
+                    query=question + " latest news",
                     region="in-en",
                     safesearch="moderate",
-                    max_results=4,
+                    max_results=5,
                 )
             )
 
@@ -45,27 +50,37 @@ def search_web(question):
                     f"Source: {url}"
                 )
 
-        return "\n\n".join(formatted)
+        search_results = "\n\n".join(formatted)
+
+        if not search_results:
+            print("WEB SEARCH: No results returned.")
+
+        return search_results
 
     except Exception as error:
         print("WEB SEARCH ERROR:", error)
         return ""
 
 
+# --------------------------------------------------
+# PROMPT
+# --------------------------------------------------
+
 def build_prompt(question, history, search_results):
+
     today = datetime.now().strftime("%d %B %Y")
 
     if search_results:
         web_information = search_results
     else:
         web_information = (
-            "Web search was unavailable. Do not pretend to have "
-            "verified current information. Clearly state uncertainty "
-            "for facts that may have changed."
+            "No verified web search results are available. "
+            "Do not claim that live information was searched. "
+            "Be transparent when current facts cannot be verified."
         )
 
     return f"""
-You are MRG AI, a helpful and friendly AI assistant.
+You are MRG AI, a helpful, friendly, and intelligent AI assistant.
 
 IDENTITY:
 - Your founder is Manju R Gowda.
@@ -73,14 +88,17 @@ IDENTITY:
 
 TODAY'S DATE: {today}
 
-RULES:
+IMPORTANT RULES:
 1. Answer the user's actual question clearly.
-2. For changing facts, use the search results when available.
-3. Prefer official sources and check publication dates.
-4. Never invent facts, links, or sources.
-5. If current information cannot be verified, say so.
-6. Use simple, friendly language.
-7. Use conversation history only as context.
+2. Use provided web search results for current information.
+3. Never pretend to have searched the web if no results are available.
+4. Never invent news, facts, links, or sources.
+5. Prefer reliable and official sources when available.
+6. Distinguish verified facts from uncertainty.
+7. Use simple, friendly language.
+8. Use conversation history only as context.
+9. Do not describe old information as breaking news.
+10. Answer in a helpful and natural way.
 
 CONVERSATION HISTORY:
 {json.dumps(history, ensure_ascii=False)}
@@ -91,29 +109,45 @@ WEB SEARCH RESULTS:
 USER QUESTION:
 {question}
 
-Give one clear answer.
+Provide one clear and useful answer.
 """
 
+
+# --------------------------------------------------
+# HOME PAGE
+# --------------------------------------------------
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
+# --------------------------------------------------
+# HEALTH CHECK
+# --------------------------------------------------
+
 @app.route("/health")
 def health():
     return {
         "status": "ok",
         "model": MODEL,
+        "backup_model": BACKUP_MODEL,
         "api_key_configured": client is not None,
     }
 
 
+# --------------------------------------------------
+# GEMINI RESPONSE
+# --------------------------------------------------
+
 def generate_answer(model, prompt):
-    """Try a model with short retries for temporary server errors."""
-    last_error = None
+    """Generate an answer with a retry for temporary errors."""
+
+    if client is None:
+        return None
 
     for attempt in range(2):
+
         try:
             response = client.models.generate_content(
                 model=model,
@@ -125,41 +159,46 @@ def generate_answer(model, prompt):
             if answer:
                 return answer
 
-            last_error = "The model returned an empty answer."
+            print(f"GEMINI ERROR ({model}): Empty response.")
 
         except Exception as error:
-            last_error = str(error)
-            print(f"GEMINI ERROR ({model}, attempt {attempt + 1}):", error)
 
-            # Retry only likely temporary service/rate-limit errors.
-            error_text = last_error.lower()
-            temporary = any(
-                term in error_text
-                for term in (
-                    "503",
-                    "unavailable",
-                    "429",
-                    "resource_exhausted",
-                    "500",
-                    "timeout",
-                    "temporarily",
-                )
+            error_text = str(error).lower()
+
+            print(
+                f"GEMINI ERROR ({model}, attempt {attempt + 1}):",
+                error,
             )
 
-            if not temporary:
+            temporary_errors = (
+                "503",
+                "unavailable",
+                "429",
+                "resource_exhausted",
+                "500",
+                "timeout",
+                "temporarily",
+            )
+
+            if not any(term in error_text for term in temporary_errors):
                 break
 
             if attempt == 0:
-                time.sleep(1.5)
+                time.sleep(2)
 
     return None
 
 
+# --------------------------------------------------
+# CHAT ENDPOINT
+# --------------------------------------------------
+
 @app.route("/ask", methods=["POST"])
 def ask():
+
     if client is None:
         return Response(
-            "The AI is not configured. Please check GEMINI_API_KEY in Render.",
+            "MRG AI is not configured. Check GEMINI_API_KEY in Render.",
             status=500,
             mimetype="text/plain",
         )
@@ -174,42 +213,71 @@ def ask():
         )
 
     try:
-        history = json.loads(request.form.get("history", "[]"))
+        history = json.loads(
+            request.form.get("history", "[]")
+        )
+
         if not isinstance(history, (list, dict)):
             history = []
+
     except (json.JSONDecodeError, TypeError):
         history = []
 
-    # Web search must not prevent the AI from answering.
+    # Search the web before generating the answer.
     search_results = search_web(question)
-    prompt = build_prompt(question, history, search_results)
+
+    prompt = build_prompt(
+        question,
+        history,
+        search_results,
+    )
 
     def generate():
-        answer = generate_answer(MODEL, prompt)
 
+        answer = generate_answer(
+            MODEL,
+            prompt,
+        )
+
+        # Try the backup model if the primary model fails.
         if not answer and BACKUP_MODEL != MODEL:
+
             print("Trying backup model:", BACKUP_MODEL)
-            answer = generate_answer(BACKUP_MODEL, prompt)
+
+            answer = generate_answer(
+                BACKUP_MODEL,
+                prompt,
+            )
 
         if answer:
             yield answer
+
         else:
             yield (
                 "MRG AI is temporarily busy. 💙 "
-                "Please try again in a minute. If this continues, "
-                "check the Gemini model availability and API quota "
+                "Please try again shortly. If the problem continues, "
+                "check your Gemini API quota and model availability "
                 "in Google AI Studio."
             )
 
     return Response(
         stream_with_context(generate()),
         mimetype="text/plain; charset=utf-8",
-        headers={"Cache-Control": "no-cache"},
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
     )
 
 
+# --------------------------------------------------
+# START APPLICATION
+# --------------------------------------------------
+
 if __name__ == "__main__":
+
     app.run(
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
     )
+    
