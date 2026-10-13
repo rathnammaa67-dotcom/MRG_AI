@@ -3,7 +3,7 @@ import json
 import time
 from datetime import datetime
 
-from flask import Flask, request, Response, stream_with_context
+from flask import Flask, request, render_template, Response, stream_with_context
 from google import genai
 from ddgs import DDGS
 
