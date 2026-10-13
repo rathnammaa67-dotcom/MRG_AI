@@ -1,59 +1,71 @@
 import os
 import json
+import time
 from datetime import datetime
-from flask import Flask, request, render_template, Response, stream_with_context
+
+from flask import Flask, request, Response, stream_with_context
 from google import genai
 from ddgs import DDGS
 
 app = Flask(__name__)
 
 API_KEY = os.environ.get("GEMINI_API_KEY")
+
+# Primary model and backup model
 MODEL = "gemini-3.1-flash-lite"
+BACKUP_MODEL = "gemini-2.5-flash"
 
 client = genai.Client(api_key=API_KEY) if API_KEY else None
 
 
 def search_web(question):
-    """Search the web for information relevant to the question."""
+    """Try web search quickly; continue without it if it fails."""
     try:
-        with DDGS(timeout=10) as ddgs:
+        with DDGS(timeout=4) as ddgs:
             results = list(
                 ddgs.text(
-                    query=question + " latest official information",
+                    query=question + " official information",
                     region="in-en",
                     safesearch="moderate",
-                    max_results=6,
+                    max_results=4,
                 )
             )
 
-        if not results:
-            return "No web search results were found."
-
         formatted = []
+
         for item in results:
             title = item.get("title", "")
             body = item.get("body", "")
             url = item.get("href", "")
 
-            if title and body and url:
+            if title and body:
                 formatted.append(
                     f"Title: {title}\n"
                     f"Information: {body}\n"
                     f"Source: {url}"
                 )
 
-        return "\n\n".join(formatted) or "No useful results found."
+        return "\n\n".join(formatted)
 
     except Exception as error:
         print("WEB SEARCH ERROR:", error)
-        return "Web search is temporarily unavailable."
+        return ""
 
 
 def build_prompt(question, history, search_results):
     today = datetime.now().strftime("%d %B %Y")
 
+    if search_results:
+        web_information = search_results
+    else:
+        web_information = (
+            "Web search was unavailable. Do not pretend to have "
+            "verified current information. Clearly state uncertainty "
+            "for facts that may have changed."
+        )
+
     return f"""
-You are MRG AI, a helpful AI assistant.
+You are MRG AI, a helpful and friendly AI assistant.
 
 IDENTITY:
 - Your founder is Manju R Gowda.
@@ -61,35 +73,25 @@ IDENTITY:
 
 TODAY'S DATE: {today}
 
-IMPORTANT RULES:
-1. Answer the user's actual question clearly and accurately.
-2. For questions about current office holders, news, prices, sports,
-   weather, laws, or other changing facts, examine the web search
-   results before answering.
-3. Prefer official government websites, official organizations,
-   and reputable news sources over Wikipedia, blogs, or old articles.
-4. Check dates and distinguish old information from current information.
-5. Search results can be outdated or incorrect. Never assume that
-   the first result is correct.
-6. If the available results do not establish the current answer,
-   clearly say that you could not verify it. Never guess.
-7. Do not invent sources, dates, names, or facts.
-8. Include relevant source links in your answer when available.
-9. Use simple, friendly language.
-10. Do not repeat the same answer twice.
-11. Conversation history is context, not proof that a claim is true.
+RULES:
+1. Answer the user's actual question clearly.
+2. For changing facts, use the search results when available.
+3. Prefer official sources and check publication dates.
+4. Never invent facts, links, or sources.
+5. If current information cannot be verified, say so.
+6. Use simple, friendly language.
+7. Use conversation history only as context.
 
 CONVERSATION HISTORY:
-{history}
+{json.dumps(history, ensure_ascii=False)}
 
 WEB SEARCH RESULTS:
-{search_results}
+{web_information}
 
 USER QUESTION:
 {question}
 
-Provide one clear answer. Use the search results critically and
-state uncertainty when the evidence is insufficient.
+Give one clear answer.
 """
 
 
@@ -100,14 +102,64 @@ def home():
 
 @app.route("/health")
 def health():
-    return {"status": "ok", "model": MODEL}
+    return {
+        "status": "ok",
+        "model": MODEL,
+        "api_key_configured": client is not None,
+    }
+
+
+def generate_answer(model, prompt):
+    """Try a model with short retries for temporary server errors."""
+    last_error = None
+
+    for attempt in range(2):
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+            )
+
+            answer = getattr(response, "text", None)
+
+            if answer:
+                return answer
+
+            last_error = "The model returned an empty answer."
+
+        except Exception as error:
+            last_error = str(error)
+            print(f"GEMINI ERROR ({model}, attempt {attempt + 1}):", error)
+
+            # Retry only likely temporary service/rate-limit errors.
+            error_text = last_error.lower()
+            temporary = any(
+                term in error_text
+                for term in (
+                    "503",
+                    "unavailable",
+                    "429",
+                    "resource_exhausted",
+                    "500",
+                    "timeout",
+                    "temporarily",
+                )
+            )
+
+            if not temporary:
+                break
+
+            if attempt == 0:
+                time.sleep(1.5)
+
+    return None
 
 
 @app.route("/ask", methods=["POST"])
 def ask():
     if client is None:
         return Response(
-            "Error: GEMINI_API_KEY is not configured in the server settings.",
+            "The AI is not configured. Please check GEMINI_API_KEY in Render.",
             status=500,
             mimetype="text/plain",
         )
@@ -121,35 +173,32 @@ def ask():
             mimetype="text/plain",
         )
 
-    raw_history = request.form.get("history", "")
-
     try:
-        history = json.loads(raw_history) if raw_history else []
+        history = json.loads(request.form.get("history", "[]"))
         if not isinstance(history, (list, dict)):
             history = []
     except (json.JSONDecodeError, TypeError):
         history = []
 
+    # Web search must not prevent the AI from answering.
     search_results = search_web(question)
     prompt = build_prompt(question, history, search_results)
 
     def generate():
-        try:
-            response = client.models.generate_content_stream(
-                model=MODEL,
-                contents=prompt,
-            )
+        answer = generate_answer(MODEL, prompt)
 
-            for chunk in response:
-                text = getattr(chunk, "text", None)
-                if text:
-                    yield text
+        if not answer and BACKUP_MODEL != MODEL:
+            print("Trying backup model:", BACKUP_MODEL)
+            answer = generate_answer(BACKUP_MODEL, prompt)
 
-        except Exception as error:
-            print("GEMINI ERROR:", error)
+        if answer:
+            yield answer
+        else:
             yield (
-                "\n\nSorry, I couldn't complete the answer. "
-                "Please try again in a moment."
+                "MRG AI is temporarily busy. 💙 "
+                "Please try again in a minute. If this continues, "
+                "check the Gemini model availability and API quota "
+                "in Google AI Studio."
             )
 
     return Response(
@@ -160,6 +209,7 @@ def ask():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
-
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+    )
