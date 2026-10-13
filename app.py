@@ -21,7 +21,7 @@ client = genai.Client(api_key=API_KEY) if API_KEY else None
 def search_web(question):
     """Try web search quickly; continue without it if it fails."""
     try:
-        with DDGS(timeout=4) as ddgs:
+        def search_web(question):
             results = list(
                 ddgs.text(
                     query=question + " official information",
