@@ -1,6 +1,8 @@
+```python
 import os
 import json
 import time
+import random
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -15,8 +17,8 @@ app = Flask(__name__)
 
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
-MODEL = "gemini-3.5-flash-lite"
-BACKUP_MODEL = "gemini-3.1-flash-lite"
+MODEL = "gemini-3.6-flash"
+BACKUP_MODEL = "gemini-3.5-flash-lite"
 
 TIMEZONE = ZoneInfo("Asia/Kolkata")
 
@@ -44,9 +46,9 @@ INSTRUCTIONS:
 2. Use simple, friendly, natural language.
 3. Use conversation history when relevant.
 4. Be accurate and never invent facts, news, links, or sources.
-5. Answer educational questions and general knowledge questions directly.
+5. Answer educational and general knowledge questions directly.
 6. Do not claim to have searched the internet.
-7. For current information that you cannot verify, explain that limitation.
+7. For current information you cannot verify, explain that limitation.
 8. Distinguish facts from uncertainty.
 9. Format answers clearly.
 10. Avoid unnecessary repetition.
@@ -81,7 +83,7 @@ def health():
         "model": MODEL,
         "backup_model": BACKUP_MODEL,
         "api_key_configured": client is not None,
-        "web_search": "Disabled temporarily",
+        "web_search": "Disabled",
     }
 
 
@@ -90,12 +92,12 @@ def health():
 # --------------------------------------------------
 
 def generate_answer(model, prompt):
-    """Generate an answer without Google Search grounding."""
+    """Generate an answer and retry temporary server errors."""
 
     if client is None:
         return None
 
-    for attempt in range(2):
+    for attempt in range(3):
         try:
             response = client.models.generate_content(
                 model=model,
@@ -113,8 +115,8 @@ def generate_answer(model, prompt):
             error_text = str(error).lower()
 
             print(
-                f"GEMINI ERROR ({model}, attempt {attempt + 1}): "
-                f"{error}"
+                f"GEMINI ERROR ({model}, "
+                f"attempt {attempt + 1}/3): {error}"
             )
 
             temporary_errors = (
@@ -123,6 +125,8 @@ def generate_answer(model, prompt):
                 "429",
                 "resource_exhausted",
                 "500",
+                "502",
+                "504",
                 "timeout",
                 "temporarily",
                 "high demand",
@@ -131,8 +135,9 @@ def generate_answer(model, prompt):
             if not any(term in error_text for term in temporary_errors):
                 break
 
-            if attempt == 0:
-                time.sleep(2)
+            if attempt < 2:
+                delay = (2 ** attempt) + random.uniform(0, 1)
+                time.sleep(delay)
 
     return None
 
@@ -186,10 +191,10 @@ def ask():
             yield answer
         else:
             yield (
-                "MRG AI is temporarily busy. 💙 "
-                "Please try again shortly. If the problem continues, "
-                "check your Gemini API quota and model availability "
-                "in Google AI Studio."
+                "MRG AI is temporarily unable to respond. 💙 "
+                "Google's AI service may be busy. Please try again "
+                "in a little while. If the problem continues, "
+                "check the latest Render logs and Gemini API quota."
             )
 
     return Response(
@@ -211,3 +216,4 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
     )
+```
