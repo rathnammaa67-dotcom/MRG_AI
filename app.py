@@ -2,109 +2,61 @@ import os
 import json
 import time
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-from flask import Flask, request, render_template, Response, stream_with_context
+from flask import Flask, request, render_template, Response
 from google import genai
 from google.genai import types
 
 app = Flask(__name__)
 
-# API configuration
+# --------------------------------------------------
+# CONFIGURATION
+# --------------------------------------------------
+
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
 MODEL = "gemini-3.8-flash"
 BACKUP_MODEL = "gemini-3.7-flash"
 
+TIMEZONE = ZoneInfo("Asia/Kolkata")
+
 client = genai.Client(api_key=API_KEY) if API_KEY else None
-
-
-# --------------------------------------------------
-# WEB SEARCH
-# --------------------------------------------------
-
-def search_web(question):
-    """Search the web and return formatted results."""
-
-    try:
-        with DDGS(timeout=10) as ddgs:
-            results = list(
-                ddgs.text(
-                    query=question + " latest news",
-                    region="in-en",
-                    safesearch="moderate",
-                    max_results=5,
-                )
-            )
-
-        formatted = []
-
-        for item in results:
-            title = item.get("title", "")
-            body = item.get("body", "")
-            url = item.get("href", "")
-
-            if title and body:
-                formatted.append(
-                    f"Title: {title}\n"
-                    f"Information: {body}\n"
-                    f"Source: {url}"
-                )
-
-        search_results = "\n\n".join(formatted)
-
-        if not search_results:
-            print("WEB SEARCH: No results returned.")
-
-        return search_results
-
-    except Exception as error:
-        print("WEB SEARCH ERROR:", error)
-        return ""
 
 
 # --------------------------------------------------
 # PROMPT
 # --------------------------------------------------
 
-def build_prompt(question, history, search_results):
-
-    today = datetime.now().strftime("%d %B %Y")
-
-    if search_results:
-        web_information = search_results
-    else:
-        web_information = (
-            "No verified web search results are available. "
-            "Do not claim that live information was searched. "
-            "Be transparent when current facts cannot be verified."
-        )
+def build_prompt(question, history):
+    today = datetime.now(TIMEZONE).strftime("%d %B %Y")
 
     return f"""
 You are MRG AI, a helpful, friendly, and intelligent AI assistant.
 
 IDENTITY:
-- Your founder is Manju R Gowda.
-- You were trained and developed by Manjur Gowda.
+- Founder: Manju R Gowda.
+- Developed and trained by Manju R Gowda.
 
 TODAY'S DATE: {today}
 
-IMPORTANT RULES:
+INSTRUCTIONS:
 1. Answer the user's actual question clearly.
-2. Use provided web search results for current information.
-3. Never pretend to have searched the web if no results are available.
-4. Never invent news, facts, links, or sources.
-5. Prefer reliable and official sources when available.
-6. Distinguish verified facts from uncertainty.
-7. Use simple, friendly language.
-8. Use conversation history only as context.
-9. Do not describe old information as breaking news.
-10. Answer in a helpful and natural way.
+2. Use simple, friendly, natural language.
+3. Use conversation history when relevant.
+4. Be accurate and do not invent facts, news, links, or sources.
+5. For current facts, recent news, current officeholders, weather,
+   prices, and other time-sensitive questions, use Google Search
+   grounding when available.
+6. For ordinary educational questions and general knowledge,
+   answer directly without unnecessary searching.
+7. If current information cannot be verified, be honest about it.
+8. Distinguish facts from uncertainty.
+9. Do not claim you searched if you did not.
+10. Format answers clearly and avoid unnecessary repetition.
 
 CONVERSATION HISTORY:
 {json.dumps(history, ensure_ascii=False)}
-
-WEB SEARCH RESULTS:
-{web_information}
 
 USER QUESTION:
 {question}
@@ -133,6 +85,7 @@ def health():
         "model": MODEL,
         "backup_model": BACKUP_MODEL,
         "api_key_configured": client is not None,
+        "web_search": "Gemini Google Search grounding",
     }
 
 
@@ -141,33 +94,41 @@ def health():
 # --------------------------------------------------
 
 def generate_answer(model, prompt):
-    """Generate an answer with a retry for temporary errors."""
+    """Generate an answer, using Google Search grounding."""
 
     if client is None:
         return None
 
-    for attempt in range(2):
+    # Google Search is enabled so Gemini can decide when it is useful.
+    config = types.GenerateContentConfig(
+        tools=[
+            types.Tool(
+                google_search=types.GoogleSearch()
+            )
+        ]
+    )
 
+    for attempt in range(2):
         try:
             response = client.models.generate_content(
                 model=model,
                 contents=prompt,
+                config=config,
             )
 
             answer = getattr(response, "text", None)
 
-            if answer:
-                return answer
+            if answer and answer.strip():
+                return answer.strip()
 
             print(f"GEMINI ERROR ({model}): Empty response.")
 
         except Exception as error:
-
             error_text = str(error).lower()
 
             print(
-                f"GEMINI ERROR ({model}, attempt {attempt + 1}):",
-                error,
+                f"GEMINI ERROR ({model}, attempt {attempt + 1}): "
+                f"{error}"
             )
 
             temporary_errors = (
@@ -178,6 +139,7 @@ def generate_answer(model, prompt):
                 "500",
                 "timeout",
                 "temporarily",
+                "high demand",
             )
 
             if not any(term in error_text for term in temporary_errors):
@@ -198,7 +160,8 @@ def ask():
 
     if client is None:
         return Response(
-            "MRG AI is not configured. Check GEMINI_API_KEY in Render.",
+            "MRG AI is not configured. Please check the "
+            "GEMINI_API_KEY setting in Render.",
             status=500,
             mimetype="text/plain",
         )
@@ -223,45 +186,28 @@ def ask():
     except (json.JSONDecodeError, TypeError):
         history = []
 
-    # Search the web before generating the answer.
-    search_results = search_web(question)
-
-    prompt = build_prompt(
-        question,
-        history,
-        search_results,
-    )
+    prompt = build_prompt(question, history)
 
     def generate():
 
-        answer = generate_answer(
-            MODEL,
-            prompt,
-        )
+        answer = generate_answer(MODEL, prompt)
 
         # Try the backup model if the primary model fails.
         if not answer and BACKUP_MODEL != MODEL:
-
             print("Trying backup model:", BACKUP_MODEL)
-
-            answer = generate_answer(
-                BACKUP_MODEL,
-                prompt,
-            )
+            answer = generate_answer(BACKUP_MODEL, prompt)
 
         if answer:
             yield answer
-
         else:
             yield (
                 "MRG AI is temporarily busy. 💙 "
                 "Please try again shortly. If the problem continues, "
-                "check your Gemini API quota and model availability "
-                "in Google AI Studio."
+                "check model availability and API quota in Google AI Studio."
             )
 
     return Response(
-        stream_with_context(generate()),
+        generate(),
         mimetype="text/plain; charset=utf-8",
         headers={
             "Cache-Control": "no-cache",
@@ -275,9 +221,7 @@ def ask():
 # --------------------------------------------------
 
 if __name__ == "__main__":
-
     app.run(
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
     )
-    
