@@ -5,7 +5,7 @@ from datetime import datetime
 
 from flask import Flask, request, render_template, Response, stream_with_context
 from google import genai
-from ddgs import DDGS
+from google.genai import types
 
 app = Flask(__name__)
 
