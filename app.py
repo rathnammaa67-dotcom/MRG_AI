@@ -16,8 +16,8 @@ app = Flask(__name__)
 
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
-MODEL = "gemini-3.8-flash"
-BACKUP_MODEL = "gemini-3.7-flash"
+MODEL = "gemini-3.5-flash-lite"
+BACKUP_MODEL = "gemini-3.1-flash-lite"
 
 TIMEZONE = ZoneInfo("Asia/Kolkata")
 
