@@ -12,8 +12,8 @@ app = Flask(__name__)
 # API configuration
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
-MODEL = "gemini-3.1-flash-lite"
-BACKUP_MODEL = "gemini-3.8-flash"
+MODEL = "gemini-3.8-flash"
+BACKUP_MODEL = "gemini-3.7-flash"
 
 client = genai.Client(api_key=API_KEY) if API_KEY else None
 
