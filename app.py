@@ -1,4 +1,3 @@
-```python
 import os
 import json
 import time
@@ -17,8 +16,8 @@ app = Flask(__name__)
 
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
-MODEL = "gemini-3.6-flash"
-BACKUP_MODEL = "gemini-3.5-flash-lite"
+MODEL = "gemini-3.5-flash-lite"
+BACKUP_MODEL = "gemini-3.1-flash-lite"
 
 TIMEZONE = ZoneInfo("Asia/Kolkata")
 
@@ -45,13 +44,12 @@ INSTRUCTIONS:
 1. Answer the user's actual question clearly.
 2. Use simple, friendly, natural language.
 3. Use conversation history when relevant.
-4. Be accurate and never invent facts, news, links, or sources.
-5. Answer educational and general knowledge questions directly.
+4. Be accurate and do not invent facts, news, links, or sources.
+5. Answer educational questions and general knowledge questions directly.
 6. Do not claim to have searched the internet.
 7. For current information you cannot verify, explain that limitation.
 8. Distinguish facts from uncertainty.
-9. Format answers clearly.
-10. Avoid unnecessary repetition.
+9. Format answers clearly and avoid unnecessary repetition.
 
 CONVERSATION HISTORY:
 {json.dumps(history, ensure_ascii=False)}
@@ -83,7 +81,7 @@ def health():
         "model": MODEL,
         "backup_model": BACKUP_MODEL,
         "api_key_configured": client is not None,
-        "web_search": "Disabled",
+        "web_search": "Disabled temporarily",
     }
 
 
@@ -92,7 +90,7 @@ def health():
 # --------------------------------------------------
 
 def generate_answer(model, prompt):
-    """Generate an answer and retry temporary server errors."""
+    """Generate an answer with retries for temporary errors."""
 
     if client is None:
         return None
@@ -136,8 +134,7 @@ def generate_answer(model, prompt):
                 break
 
             if attempt < 2:
-                delay = (2 ** attempt) + random.uniform(0, 1)
-                time.sleep(delay)
+                time.sleep((2 ** attempt) + random.uniform(0, 1))
 
     return None
 
@@ -180,7 +177,6 @@ def ask():
     prompt = build_prompt(question, history)
 
     def generate():
-
         answer = generate_answer(MODEL, prompt)
 
         if not answer and BACKUP_MODEL != MODEL:
@@ -192,10 +188,8 @@ def ask():
         else:
             yield (
                 "MRG AI is temporarily unable to respond. 💙 "
-                "Google's AI service may be busy. Please try again "
-                "in a little while. If the problem continues, "
-                "check the latest Render logs and Gemini API quota."
-            )
+                "Please try again shortly. If the problem continues, "
+           )
 
     return Response(
         generate(),
@@ -216,4 +210,3 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
     )
-```
