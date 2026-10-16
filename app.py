@@ -6,7 +6,6 @@ from zoneinfo import ZoneInfo
 
 from flask import Flask, request, render_template, Response
 from google import genai
-from google.genai import types
 
 app = Flask(__name__)
 
@@ -36,7 +35,7 @@ You are MRG AI, a helpful, friendly, and intelligent AI assistant.
 
 IDENTITY:
 - Founder: Manju R Gowda.
-- Developed and trained by Manju R Gowda.
+- Developed by Manju R Gowda.
 
 TODAY'S DATE: {today}
 
@@ -44,16 +43,13 @@ INSTRUCTIONS:
 1. Answer the user's actual question clearly.
 2. Use simple, friendly, natural language.
 3. Use conversation history when relevant.
-4. Be accurate and do not invent facts, news, links, or sources.
-5. For current facts, recent news, current officeholders, weather,
-   prices, and other time-sensitive questions, use Google Search
-   grounding when available.
-6. For ordinary educational questions and general knowledge,
-   answer directly without unnecessary searching.
-7. If current information cannot be verified, be honest about it.
+4. Be accurate and never invent facts, news, links, or sources.
+5. Answer educational questions and general knowledge questions directly.
+6. Do not claim to have searched the internet.
+7. For current information that you cannot verify, explain that limitation.
 8. Distinguish facts from uncertainty.
-9. Do not claim you searched if you did not.
-10. Format answers clearly and avoid unnecessary repetition.
+9. Format answers clearly.
+10. Avoid unnecessary repetition.
 
 CONVERSATION HISTORY:
 {json.dumps(history, ensure_ascii=False)}
@@ -85,7 +81,7 @@ def health():
         "model": MODEL,
         "backup_model": BACKUP_MODEL,
         "api_key_configured": client is not None,
-        "web_search": "Gemini Google Search grounding",
+        "web_search": "Disabled temporarily",
     }
 
 
@@ -94,26 +90,16 @@ def health():
 # --------------------------------------------------
 
 def generate_answer(model, prompt):
-    """Generate an answer, using Google Search grounding."""
+    """Generate an answer without Google Search grounding."""
 
     if client is None:
         return None
-
-    # Google Search is enabled so Gemini can decide when it is useful.
-    config = types.GenerateContentConfig(
-        tools=[
-            types.Tool(
-                google_search=types.GoogleSearch()
-            )
-        ]
-    )
 
     for attempt in range(2):
         try:
             response = client.models.generate_content(
                 model=model,
                 contents=prompt,
-                config=config,
             )
 
             answer = getattr(response, "text", None)
@@ -192,7 +178,6 @@ def ask():
 
         answer = generate_answer(MODEL, prompt)
 
-        # Try the backup model if the primary model fails.
         if not answer and BACKUP_MODEL != MODEL:
             print("Trying backup model:", BACKUP_MODEL)
             answer = generate_answer(BACKUP_MODEL, prompt)
@@ -203,7 +188,8 @@ def ask():
             yield (
                 "MRG AI is temporarily busy. 💙 "
                 "Please try again shortly. If the problem continues, "
-                "check model availability and API quota in Google AI Studio."
+                "check your Gemini API quota and model availability "
+                "in Google AI Studio."
             )
 
     return Response(
